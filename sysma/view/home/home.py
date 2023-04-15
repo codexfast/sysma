@@ -2,6 +2,7 @@
 from controller.core.xlsx import Xlsx
 from view.projects.project import NewProjectWindow
 from view.config import Configs as ConfigWindow
+from view.base import BaseWindow
 
 import customtkinter
 import config
@@ -113,18 +114,7 @@ class HomeScreen:
             print(xlsx)
 
     def create_new_project(self):
-        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = NewProjectWindow(self.master)  # create window if its None or destroyed
-            # self.toplevel_window.focus()
-            self.toplevel_window.attributes("-topmost", 1)
-        else:
-            self.toplevel_window.focus()  # if window exists focus it
+        BaseWindow.open_top_level(self.master, self.toplevel_window, NewProjectWindow)
 
     def change_configs(self):
-
-        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = ConfigWindow(self.master)  # create window if its None or destroyed
-            # self.toplevel_window.focus()
-            self.toplevel_window.attributes("-topmost", 1)
-        else:
-            self.toplevel_window.focus()  # if window exists focus it
+        BaseWindow.open_top_level(self.master, self.toplevel_window, ConfigWindow)
