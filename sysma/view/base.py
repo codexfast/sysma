@@ -1,17 +1,26 @@
 import customtkinter
-import config
 
 class BaseWindow(customtkinter.CTkToplevel):
     def __init__(self, master, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.protocol("WM_DELETE_WINDOW", self.callback)
+        self.protocol("WM_DELETE_WINDOW", self._destroy)
         self.title("UwU")
         
         self.master = master
         self.master.withdraw()
 
-    def callback(self):
+    def draw_title(self, title: str):
+        title_label = customtkinter.CTkLabel(
+            self, 
+            text=title,
+            font=customtkinter.CTkFont(family="Arial", size=20, weight="bold"),
+            text_color="#4A4A4A"
+
+        )
+        title_label.place(x=40, y=40)
+        
+    def _destroy(self):
 
         self.master.state("normal")
         self.destroy()

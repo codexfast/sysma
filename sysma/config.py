@@ -1,15 +1,26 @@
 import os
 import customtkinter
 import dataclasses
+import sqlalchemy
+
+from sqlalchemy.orm import declarative_base
+Base = declarative_base()
+
+# Load models tables
+from model.automobiles import Automobiles
 
 from PIL import Image
+
+# Db engine
+DB_ENGINE = sqlalchemy.create_engine('sqlite:///sysma.db', echo=False)
+
+# Create all tables
+Base.metadata.create_all(DB_ENGINE)
+
 
 # Paths
 IMAGE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
 DOCUMENTS_FOLDER = os.path.join(os.path.expandvars('%USERPROFILE%'),'Documents')
-
-
-# Imgs
 
 @dataclasses.dataclass
 class Images:
@@ -32,17 +43,22 @@ class Images:
     )
 
     IMPORT_EXCEL = customtkinter.CTkImage(
-        light_image=Image.open(os.path.join(IMAGE_PATH, 'import_xlsx.png')), 
-        dark_image=Image.open(os.path.join(IMAGE_PATH, 'import_xlsx.png')), 
-        size=(96,132)   
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'importassets.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'importassets.png')), 
+        size=(96,126)   
     )
 
-    EXPORT_EXCEL = customtkinter.CTkImage(
-        light_image=Image.open(os.path.join(IMAGE_PATH, 'export_xlsx.png')), 
-        dark_image=Image.open(os.path.join(IMAGE_PATH, 'export_xlsx.png')), 
-        size=(96,132)   
+    IMPORT_RESOURCE = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'importresource.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'importresource.png')), 
+        size=(96,126)   
     )
- 
+
+    SYSPL = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'syspl.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'syspl.png')), 
+        size=(96,126)   
+    )
 
     NEW_PROJECT = customtkinter.CTkImage(
         light_image=Image.open(os.path.join(IMAGE_PATH, 'newprojecttransparent.png')), 
@@ -66,6 +82,12 @@ class Images:
         light_image=Image.open(os.path.join(IMAGE_PATH, 'dashboard.png')), 
         dark_image=Image.open(os.path.join(IMAGE_PATH, 'dashboard.png')), 
         size=(96,126)   
+    )
+
+    FOLDERCHECK = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'foldercheck.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'foldercheck.png')), 
+        size=(21,21)   
     )
 
     ICON = os.path.join(IMAGE_PATH, 'favicon_transparent_32x32.ico')
