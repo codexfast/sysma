@@ -1,8 +1,16 @@
 from view.base import BaseWindow
 from .screen.worker import Worker
-import config
+from .screen.history import History
 
+from sqlalchemy.orm import Session
+from models.automobiles import Automobiles
+from .models.syspl import SysplLogin
+
+import config
 import customtkinter
+import typing
+
+from tkinter import messagebox, StringVar
 
 class View(BaseWindow):
 
@@ -20,10 +28,36 @@ class View(BaseWindow):
 
         self.add_widgets()
 
+
     def _destroy(self):
         return super()._destroy()
+
+    def get_login(self) -> typing.Tuple[str, str]:
+
+        username = ""
+        password = ""
+        
+        with Session(config.DB_ENGINE) as session:
+            login = session.query(SysplLogin).one_or_none()
+
+            if login:
+                username = login.username
+                password = login.password
+
+            else:
+
+                session.add(SysplLogin(username="", password=""))
+                session.commit()
+
+        return (username, password)
     
+
     def add_widgets(self):
+
+        _u, _p = self.get_login()
+
+        username_var = StringVar(value=_u)
+        password_var = StringVar(value=_p)
 
         entry_config = {
             "fg_color":"#E7EFEE",
@@ -43,8 +77,9 @@ class View(BaseWindow):
             width=220, 
             height=40, 
             placeholder_text="Usuário",
-            **entry_config
-            
+            **entry_config,
+            textvariable=username_var,
+
         )
 
         password = customtkinter.CTkEntry(
@@ -52,6 +87,7 @@ class View(BaseWindow):
             width=220, 
             height=40, 
             placeholder_text="Senha",
+            textvariable=password_var,
             show="*",
             **entry_config
         )
@@ -65,7 +101,7 @@ class View(BaseWindow):
             height=30,
             corner_radius=15,
             text_color="#fff",
-            command=lambda: BaseWindow.open_top_level(self, self.toplevel_window, Worker)
+            command=lambda: self.open_worker(username_var, password_var)
             # state="disabled"
         )
 
@@ -76,7 +112,7 @@ class View(BaseWindow):
             text=None,
             fg_color="transparent",
             corner_radius=0,
-            command=lambda: BaseWindow.open_top_level(self, self.toplevel_window, Worker),
+            command=lambda: BaseWindow.open_top_level(self, self.toplevel_window, History),
             image=config.Images.FOLDERCHECK
             # state="disabled"
         )
@@ -88,4 +124,29 @@ class View(BaseWindow):
         password.place(x=240, y=223)
         btn_start.place(x=298, y=280)
         btn_completed.place(x=648, y=41)
+
+    def open_worker(self, user_var, pass_var):
+
+        if user_var.get() and pass_var.get():
+
+            with Session(config.DB_ENGINE) as session:
+
+                count = session.query(Automobiles).count()
+                login = session.query(SysplLogin).one_or_none()
+
+                if login:
+                    login.username = user_var.get()
+                    login.password = pass_var.get()
+
+                    session.commit()
+
+                if count:
+                    BaseWindow.open_top_level(self, self.toplevel_window, Worker)
+                
+                else:
+                    messagebox.showwarning("0", "Sem dados para processar!", parent=self)
+
+        else:
+
+            messagebox.showwarning("0", "Usuário ou senha está vazio.", parent=self)
 

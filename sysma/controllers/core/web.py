@@ -12,14 +12,14 @@ def _delay(delay:int = 2) -> int:
 
 def create_webdriver() -> webdriver.Chrome:
 
-    headless_window = False
+    headless_window = True
     # headless_window = bool(int(os.getenv("HEADLESS_WINDOW", False)))
 
     # Baixa driver
     chrome_driver = Service(ChromeDriverManager().install())
     
     options = webdriver.ChromeOptions()
-    # options.add_experimental_option("detach", True)
+    # options.add_experimental_option("detach", False)
     options.add_argument("--window-size=1024,768");
     options.add_argument("--no-sandbox");
 

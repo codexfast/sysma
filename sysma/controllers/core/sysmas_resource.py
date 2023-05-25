@@ -1,5 +1,5 @@
 from .xlsx import Xlsx
-from model.automobiles import Automobiles
+from models.automobiles import Automobiles
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
@@ -32,13 +32,16 @@ class LoadSysmaResource(Xlsx):
 
 
         def resource_valid(resource):
-            assert len(resource) >= 3, "Verifique a planilha de entrada de dados"
+            # assert len(resource) >= 3, "Verifique a planilha de entrada de dados"
 
             placa, renavam, chassi = resource
 
+            # if placa:
+            #     if renavam or chassi:
+            #         return True
+
             if placa:
-                if renavam or chassi:
-                    return True
+                return True
                 
             return False
 
@@ -58,7 +61,7 @@ class LoadSysmaResource(Xlsx):
 
     def record_resources(self):
 
-        assert len(self.valid_resources) > 0, "Não há recursos para gravar"
+        # assert len(self.valid_resources) > 0, "Não há recursos para gravar"
 
 
         with Session(config.DB_ENGINE) as session, session.begin():

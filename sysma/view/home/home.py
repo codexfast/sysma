@@ -1,5 +1,5 @@
 
-from controller.core.sysmas_resource import LoadSysmaResource
+from controllers.core.sysmas_resource import LoadSysmaResource
 from view.projects.project import NewProjectWindow
 from view.config import Configs as ConfigWindow
 from view.base import BaseWindow
@@ -34,11 +34,11 @@ class HomeScreen:
         # self.create_new_project()
         
         # calls 'Syspl' function after splash screen is drawn
-        BaseWindow.open_top_level(
-            self.master, 
-            self.toplevel_window, 
-            SysplView
-        )
+        # BaseWindow.open_top_level(
+        #     self.master, 
+        #     self.toplevel_window, 
+        #     SysplView
+        # )
 
     def add_widgets(self):
         sub_frame = customtkinter.CTkFrame(
@@ -156,7 +156,13 @@ class HomeScreen:
         )
 
         if filename:
-            loaded_assets = LoadSysmaResource(filename)
+
+            try: 
+                loaded_assets = LoadSysmaResource(filename)
+
+            except TypeError:
+                messagebox.showerror("XLSX", "Erro ao ler planilha, ou versão não suportada!")
+                return;
 
             if loaded_assets.invalid_resources:
                 report = messagebox.askyesno("Erro na planilha encontrado", "Deseja gerar planilha com os erros?", icon="warning")

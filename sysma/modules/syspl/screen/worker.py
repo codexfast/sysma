@@ -1,8 +1,12 @@
 from view.base import BaseWindow
-from ..controller.app import Syspl
+from ..controllers.app import Syspl
+from ..models.syspl import SysplHistory
+
+from sqlalchemy.orm import Session
 
 import customtkinter
 import time
+import config
 # import queue
 
 class Worker(BaseWindow):
@@ -13,6 +17,7 @@ class Worker(BaseWindow):
 
         # control vars
         self.lb_perc_var = customtkinter.StringVar(value="0%")
+        self.lb_step_var = customtkinter.StringVar(value="[0000 - 0000]")
 
         self.title("Processando...")
         self.resizable(False, False)
@@ -35,7 +40,7 @@ class Worker(BaseWindow):
 
         self.lb_step = customtkinter.CTkLabel(
             self, 
-            text="[ 788 - 1000 ]",
+            textvariable=self.lb_step_var,
             **lb_conf
         )
 
@@ -65,29 +70,47 @@ class Worker(BaseWindow):
             height=30,
             corner_radius=15,
             text_color="#4A4A4A",
+            command=self._destroy
             # state="disabled"
         )
 
 
-        self.lb_step.place(x=314, y=130)
-        self.lb_perc.place(x=336, y=174)
-        self.btn_stop.place(x=279, y=225)
-        self.pb_step.place(x=131, y=159)
+        self.pb_step.place(relx=.5, y=159, anchor="center")
+        self.lb_perc.place(relx=.5, y=184, anchor="center")
+        self.lb_step.place(relx=.5, y=130, anchor="center")
+        self.btn_stop.place(relx=.5, y=225, anchor="center")
 
     def _destroy(self):
-
+        self.worker.lock_selenium = True
         return super()._destroy()
+
+    def create_history(self) -> int:
+
+        with Session(config.DB_ENGINE) as session:
+            
+            history = SysplHistory()
+
+            session.add(history)
+            
+            session.commit()
+            session.refresh(history)
+
+            return history.id
+
+
 
     def start_worker(self):
 
+        
         # Syspl is a new thread
         worker = Syspl(
             view=self,
             threadName="Syspl 1",
             threadId=1,
+            history_id=self.create_history(),
             pb_step=self.pb_step,
             lb_perc=self.lb_perc_var,
-            lb_step=self.lb_step,   
+            lb_step=self.lb_step_var,   
         )
 
         

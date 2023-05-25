@@ -4,15 +4,21 @@ import dataclasses
 import sqlalchemy
 
 from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import relationship
+
 Base = declarative_base()
 
 # Load models tables
-from model.automobiles import Automobiles
+from models.automobiles import Automobiles
+from modules.syspl.models.syspl import *
 
 from PIL import Image
 
 # Db engine
 DB_ENGINE = sqlalchemy.create_engine('sqlite:///sysma.db', echo=False)
+
+# Relationship
+# SysplHistory.syspldata = relationship("SysplData", order_by = SysplData.id, back_populates = "sysplhistory")
 
 # Create all tables
 Base.metadata.create_all(DB_ENGINE)
