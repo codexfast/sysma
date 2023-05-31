@@ -11,13 +11,15 @@ import config
 
 class Worker(BaseWindow):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, master, project_id: int, *args, **kwargs):
         
-        super().__init__( *args, **kwargs)
+        super().__init__(master, *args, **kwargs)
 
         # control vars
         self.lb_perc_var = customtkinter.StringVar(value="0%")
         self.lb_step_var = customtkinter.StringVar(value="[0000 - 0000]")
+
+        self.project_id = project_id
 
         self.title("Processando...")
         self.resizable(False, False)
@@ -88,7 +90,7 @@ class Worker(BaseWindow):
 
         with Session(config.DB_ENGINE) as session:
             
-            history = SysplHistory()
+            history = SysplHistory(project_id=self.project_id)
 
             session.add(history)
             

@@ -54,12 +54,13 @@ class LoadSysmaResource(Xlsx):
 
         # Verifica e armazena recursos válidos e inválidos
         valid = list(filter(resource_valid, resources))
+        valid = list(dict.fromkeys(valid))
         invalid = list(value for value in resources if value not in valid)
         
 
         return (valid, invalid)
 
-    def record_resources(self):
+    def record_resources(self, project_id: int):
 
         # assert len(self.valid_resources) > 0, "Não há recursos para gravar"
 
@@ -71,6 +72,7 @@ class LoadSysmaResource(Xlsx):
 
             # inserido novos dados validos
             autos = [Automobiles(
+                project_id=project_id,
                 placa=placa,
                 renavam=renavam,
                 chassi=chassi,
@@ -78,35 +80,35 @@ class LoadSysmaResource(Xlsx):
 
             session.add_all(autos)
 
-
-    def merge_resources(self) -> typing.List[typing.Tuple]:
+    # disable
+    # def merge_resources(self) -> typing.List[typing.Tuple]:
         
-        assert len(self.valid_resources) > 0, "Não há recursos para gravar"
+    #     assert len(self.valid_resources) > 0, "Não há recursos para gravar"
 
                     
-        with Session(config.DB_ENGINE) as session:
+    #     with Session(config.DB_ENGINE) as session:
 
-            # inserido novos dados não repetidos
+    #         # inserido novos dados não repetidos
 
-            insert_err = []
+    #         insert_err = []
 
-            for (placa, renavam, chassi) in self.valid_resources:
+    #         for (placa, renavam, chassi) in self.valid_resources:
 
-                try:
-                    with session.begin():
+    #             try:
+    #                 with session.begin():
 
-                        session.add(
-                            Automobiles(
-                                placa=placa,
-                                renavam=renavam,
-                                chassi=chassi,
-                            )
-                        )
+    #                     session.add(
+    #                         Automobiles(
+    #                             placa=placa,
+    #                             renavam=renavam,
+    #                             chassi=chassi,
+    #                         )
+    #                     )
 
                     
-                except IntegrityError:
+    #             except IntegrityError:
 
-                    insert_err.append((placa, renavam, chassi))
-                    session.rollback()
+    #                 insert_err.append((placa, renavam, chassi))
+    #                 session.rollback()
         
-        return insert_err
+    #     return insert_err

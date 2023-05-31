@@ -1,6 +1,6 @@
 
 from controllers.core.sysmas_resource import LoadSysmaResource
-from view.projects.project import NewProjectWindow
+from view.projects.project import NewProjectWindow, ProjectsWindow
 from view.config import Configs as ConfigWindow
 from view.base import BaseWindow
 from tkinter import messagebox
@@ -37,7 +37,7 @@ class HomeScreen:
         # BaseWindow.open_top_level(
         #     self.master, 
         #     self.toplevel_window, 
-        #     SysplView
+        #     ProjectsWindow
         # )
 
     def add_widgets(self):
@@ -62,7 +62,6 @@ class HomeScreen:
             height=99,
             command=self.create_new_project,
             corner_radius=0,
-            state="disabled"
 
         )
 
@@ -77,7 +76,12 @@ class HomeScreen:
             width=96,
             height=99,
             corner_radius=0,
-            state="disabled"
+            command=lambda: \
+                BaseWindow.open_top_level(
+                    self.master, 
+                    self.toplevel_window, 
+                    ProjectsWindow
+            )
         )
 
         dashboard_btn = customtkinter.CTkButton(
@@ -108,91 +112,11 @@ class HomeScreen:
             command=self.change_configs
         )
         
-        import_assets = customtkinter.CTkButton(
-            sub_frame, 
-            text=None, 
-            image=config.Images.IMPORT_RESOURCE,
-            fg_color="transparent",
-            bg_color="transparent",
-            # hover=None,
-            hover_color="gray70",
-            width=96,
-            height=99,
-            corner_radius=0,
-            command=self.do_import
-        )
+        
 
-        syspl = customtkinter.CTkButton(
-            sub_frame, 
-            text=None, 
-            image=config.Images.SYSPL,
-            fg_color="transparent",
-            bg_color="transparent",
-            # hover=None,
-            hover_color="gray70",
-            width=96,
-            height=99,
-            corner_radius=0,
-            command=lambda: \
-                BaseWindow.open_top_level(
-                    self.master, 
-                    self.toplevel_window, 
-                    SysplView
-            )
-        )
-
-        import_assets.grid(**self.button_pad, row=0, column=0)
-        syspl.grid(**self.button_pad, row=0, column=1)
+        new_project_btn.grid(**self.button_pad, row=0, column=0)
+        projects_btn.grid(**self.button_pad, row=0, column=1)
         config_btn.grid(**self.button_pad, row=0, column=2)
-
-    def do_import(self):
-
-        filename = customtkinter.filedialog.askopenfilename(
-            initialdir=config.DOCUMENTS_FOLDER,
-            title="Selecione uma planilha",
-            filetypes=(
-                ("Arquivo Excel", "*.xlsx*"),
-            )
-        )
-
-        if filename:
-
-            try: 
-                loaded_assets = LoadSysmaResource(filename)
-
-            except TypeError:
-                messagebox.showerror("XLSX", "Erro ao ler planilha, ou versão não suportada!")
-                return;
-
-            if loaded_assets.invalid_resources:
-                report = messagebox.askyesno("Erro na planilha encontrado", "Deseja gerar planilha com os erros?", icon="warning")
-
-                # if report: faça nova planilha de erros dos itens
-
-            if loaded_assets.valid_resources:
-                
-                # caso a lista de placas/renavam/chassi seja carregada corretamente faça:
-                if loaded_assets.count_resources > 0:
-                    merge = messagebox.askyesnocancel("Mesclagem", "Dejesa mesclar aos veículos atuais?")
-
-                    # Se nulo não faz nada
-                    if not merge is None:
-
-                        # aqui se True faz merge dos recursos
-                        if merge:
-                            loaded_assets.merge_resources()
-                        else:
-                            loaded_assets.record_resources()
-
-                else:
-                    loaded_assets.record_resources()
-
-                messagebox.showinfo("Sucesso", "Dados importados com sucesso!")
-
-            else:
-                messagebox.showerror("Erro", "Dados não importados!")
-
-            # BaseWindow.open_top_level(self.master, self.toplevel_window, ProgressBar)
 
 
     def create_new_project(self):

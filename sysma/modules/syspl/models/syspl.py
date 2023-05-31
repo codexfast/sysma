@@ -15,9 +15,11 @@ class SysplHistory(Base):
     __tablename__ = "sysplhistory"
 
     id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
 
     time_created = Column(DateTime(timezone=True), server_default=func.now())
 
+    project = relationship("Projects")
 
 
 
@@ -25,7 +27,7 @@ class SysplData(Base):
     __tablename__ = "syspldata"
 
     id = Column(Integer, primary_key=True)
-    history_id = Column(Integer, ForeignKey("sysplhistory.id"))
+    history_id = Column(Integer, ForeignKey("sysplhistory.id"), nullable=False)
     
     placa = Column(String, default=None)
     finaceira_nome = Column(String, default=None)

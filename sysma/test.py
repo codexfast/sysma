@@ -1,8 +1,5 @@
-        
-import config
-from sqlalchemy.orm import Session
-from modules.syspl.models.syspl import SysplData
+from datetime import datetime
 
+date = datetime.strptime("17/05/2023", "%d/%m/%Y")
 
-with Session(config.DB_ENGINE) as session:
-    sdata = session.query(SysplData).filter(SysplData.history_id==1).all()
+print(date.date())

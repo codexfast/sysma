@@ -4,9 +4,6 @@ import config
 from view import HomeScreen
 from view.home.nav import Navbar
 
-# from model.automobiles import Automobiles
-# from sqlalchemy import select
-# from sqlalchemy.orm import Session
 
 class App(customtkinter.CTk):
         
@@ -15,9 +12,20 @@ class App(customtkinter.CTk):
 
         # config windows
         self.title('Sysma')
-        # self.geometry('600x450')
-        self.minsize(width=600, height=450)
-        self.after(0, lambda:self.state('zoomed'))            
+
+        width = 600
+        height = 450
+
+        screen_width = self.winfo_screenwidth()  # Width of the screen
+        screen_height = self.winfo_screenheight()
+
+        x = (screen_width/2) - (width/2)
+        y = (screen_height/2) - (height/2)
+
+        self.geometry('%dx%d+%d+%d' % (width, height, x, y))
+        # self.minsize(width=600, height=450)
+        # self.after(0, lambda:self.state('zoomed'))
+   
         self.iconbitmap(default=config.Images.ICON)
 
         # set grid layout 1x2
@@ -27,15 +35,6 @@ class App(customtkinter.CTk):
         # Stacked
         Navbar(self)
         HomeScreen(self)
-
-
-        # I'm trying how add into database
-        # with Session(config.DB_ENGINE) as session:
-            # session.add(Automobiles(placa="ASDASD", renavam="07078708", chassi="ASAD123SFA3"))
-            # session.commit()
-            # res = session.query(Automobiles).all()
-
-            # print("Res is ",res)
 
 if __name__ == "__main__":
     app = App()

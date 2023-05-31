@@ -5,6 +5,7 @@ from .screen.history import History
 from sqlalchemy.orm import Session
 from models.automobiles import Automobiles
 from .models.syspl import SysplLogin
+from controllers.functionalities.import_export_xlsx import do_import
 
 import config
 import customtkinter
@@ -14,10 +15,11 @@ from tkinter import messagebox, StringVar
 
 class View(BaseWindow):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self,  master, project_id: int, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
 
         self.toplevel_window = None
+        self.project_id = project_id
 
 
         self.center(700, 450)
@@ -34,6 +36,7 @@ class View(BaseWindow):
 
     def get_login(self) -> typing.Tuple[str, str]:
 
+        # Renan login
         username = ""
         password = ""
         
@@ -72,25 +75,6 @@ class View(BaseWindow):
             text_color="#4A4A4A",
 		)
 
-        username = customtkinter.CTkEntry(
-            self, 
-            width=220, 
-            height=40, 
-            placeholder_text="Usuário",
-            **entry_config,
-            textvariable=username_var,
-
-        )
-
-        password = customtkinter.CTkEntry(
-            self, 
-            width=220, 
-            height=40, 
-            placeholder_text="Senha",
-            textvariable=password_var,
-            show="*",
-            **entry_config
-        )
 
         btn_start = customtkinter.CTkButton(
             self,
@@ -107,26 +91,42 @@ class View(BaseWindow):
 
         btn_completed = customtkinter.CTkButton(
             self,
-            width=21,
-            height=21,
+            width=87,
+            height=87,
             text=None,
             fg_color="transparent",
             corner_radius=0,
             command=lambda: BaseWindow.open_top_level(self, self.toplevel_window, History),
-            image=config.Images.FOLDERCHECK
+            image=config.Images.FOLDERCHECKV2
+            # state="disabled"
+        )
+
+        btn_upload_file = customtkinter.CTkButton(
+            self,
+            width=87,
+            height=87,
+            text=None,
+            fg_color="transparent",
+            corner_radius=0,
+            command=lambda: do_import(self, self.project_id),
+            image=config.Images.UPLOADFILE
             # state="disabled"
         )
 
 
 
-        lb_.place(x=308, y=140)
-        username.place(x=240, y=174)
-        password.place(x=240, y=223)
+        # lb_.place(x=308, y=140)
+
         btn_start.place(x=298, y=280)
-        btn_completed.place(x=648, y=41)
+        btn_completed.place(x=377, y=130)
+        btn_upload_file.place(x=235, y=130)
 
     def open_worker(self, user_var, pass_var):
 
+
+        user_var.set("36490625857")
+        pass_var.set("rennan10")
+        
         if user_var.get() and pass_var.get():
 
             with Session(config.DB_ENGINE) as session:
@@ -141,7 +141,7 @@ class View(BaseWindow):
                     session.commit()
 
                 if count:
-                    BaseWindow.open_top_level(self, self.toplevel_window, Worker)
+                    BaseWindow.open_top_level(self, self.toplevel_window, Worker, project_id=self.project_id)
                 
                 else:
                     messagebox.showwarning("0", "Sem dados para processar!", parent=self)

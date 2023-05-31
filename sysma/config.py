@@ -10,6 +10,7 @@ Base = declarative_base()
 
 # Load models tables
 from models.automobiles import Automobiles
+from models.projects import Projects
 from modules.syspl.models.syspl import *
 
 from PIL import Image
@@ -94,6 +95,45 @@ class Images:
         light_image=Image.open(os.path.join(IMAGE_PATH, 'foldercheck.png')), 
         dark_image=Image.open(os.path.join(IMAGE_PATH, 'foldercheck.png')), 
         size=(21,21)   
+    )
+
+    FOLDERCHECKV2 = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'folder-check.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'folder-check.png')), 
+        size=(87,87)   
+    )
+
+    UPLOADFILE = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'upload-file.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'upload-file.png')), 
+        size=(87,87)   
+    )
+
+    BTN_CALENDAR = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'btn_img_calendar.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'btn_img_calendar.png')), 
+        size=(26,26)   
+    )
+
+    BTN_MOD1 = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'mod1.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'mod1.png')), 
+        size=(114, 230)   
+ 
+    )
+
+    BTN_MOD2 = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'mod2-disable.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'mod2-disable.png')), 
+        size=(114, 230)   
+ 
+    )
+
+    BTN_MOD3 = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'mod3-disable.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'mod3-disable.png')), 
+        size=(114, 230)   
+ 
     )
 
     ICON = os.path.join(IMAGE_PATH, 'favicon_transparent_32x32.ico')
