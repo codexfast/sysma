@@ -12,7 +12,7 @@ def _delay(delay:int = 2) -> int:
 
 def create_webdriver() -> webdriver.Chrome:
 
-    headless_window = False
+    headless_window = True
     # headless_window = bool(int(os.getenv("HEADLESS_WINDOW", False)))
 
     # Baixa driver

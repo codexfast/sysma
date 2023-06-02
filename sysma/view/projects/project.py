@@ -1,5 +1,6 @@
 from view.base import BaseWindow, BaseForm
 from modules.syspl.view import View as SysplView
+from modules.syspl.screen.history import History
 
 from config import Images, DB_ENGINE, DOCUMENTS_FOLDER
 from controllers.functionalities.import_export_xlsx import do_import
@@ -285,12 +286,23 @@ class ProjectManagerWindow(BaseWindow):
             command=lambda: print("Módulo III inexistente")
         )
 
+        his = BaseForm.buttonv3(
+            self,
+            21,
+            12,
+            image=Images.FOLDERCHECK,
+            command=lambda: \
+                BaseWindow.open_top_level(self, self.toplevel_window, History, project_id=self.data.id)
+        )
+
         # places
         footer_lb.place(x=287, y=267)
         
         mod1.place(x=166, y=87)
         mod2.place(x=302, y=87)
         mod3.place(x=438, y=87)
+
+        his.place(x=649, y=41)
 
         ball_sep1.place(x=279, y=147)
         ball_sep2.place(x=415, y=147)

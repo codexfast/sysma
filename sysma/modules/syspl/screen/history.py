@@ -12,11 +12,13 @@ from sqlalchemy.orm import Session
 
 class History(BaseWindow):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, master, project_id, *args, **kwargs):
+        super().__init__(master, *args, **kwargs)
 
         self.title("Histórico")
         self.resizable(False, False)
+
+        self.project_id = project_id
         # self.center(400, 600)
 
         self.add_widgets()
@@ -61,7 +63,7 @@ class History(BaseWindow):
 
         with Session(config.DB_ENGINE) as session:
 
-            historical = session.query(SysplHistory).all()
+            historical = session.query(SysplHistory).filter(SysplHistory.project_id==self.project_id).all()
 
             for h in historical:
                 tree.insert('', customtkinter.END, values=(h.id, "SYSPL", h.time_created))

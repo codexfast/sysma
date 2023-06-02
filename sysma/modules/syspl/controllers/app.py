@@ -452,22 +452,10 @@ class Syspl(threading.Thread):
 
         else:
 
-            # export_now = messagebox.askyesno(parent=self.view, title="Finalizado!", message="Deseja exportar agora?")
-
-            # if export_now:
-                
-            #     path = customtkinter.filedialog.askdirectory(parent=self.view)
-
-            #     if do_export(path, self.history_id):
-            #         messagebox.showinfo(parent=self.view, title="Sucesso", message="Exportação concluida!")
-
-            #     else:
-            #         showerror(parent=self.view, title="0", message="Erro na exportação!!!")
-
             with Session(config.DB_ENGINE) as session:
                 failed = \
                     session.query(SysplData).filter(
-                        SysplData.history_id == 1, SysplData.failed == True
+                        SysplData.history_id == self.history_id, SysplData.failed == True
                     ).all()
                 
                 if not len(failed):
@@ -506,9 +494,9 @@ class Syspl(threading.Thread):
                             _auto = self.load_by_plate(converted)
 
                             if _auto:
-                                if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe") and _auto.get("Renavam"):
+                                if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe") and _auto.get("dados_veiculo_renavam"):
                                     self.update_auto(auto, converted, _auto)
-                                    session.commit()
+                                    
 
                             else:
                                 if i != 5:
@@ -532,5 +520,17 @@ class Syspl(threading.Thread):
                     except:
                         self.driver.quit()
                         break
+            
+            session.commit()
+            export_now = messagebox.askyesno(parent=self.view, title="Finalizado!", message="Deseja exportar agora?")
 
+            if export_now:
+                
+                path = customtkinter.filedialog.askdirectory(parent=self.view)
+
+                if do_export(path, self.history_id):
+                    messagebox.showinfo(parent=self.view, title="Sucesso", message="Exportação concluida!")
+
+                else:
+                    showerror(parent=self.view, title="0", message="Erro na exportação!!!")
             # self.view._destroy()
