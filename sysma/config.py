@@ -62,8 +62,20 @@ class Images:
     )
 
     SYSPL = customtkinter.CTkImage(
-        light_image=Image.open(os.path.join(IMAGE_PATH, 'syspl.png')), 
-        dark_image=Image.open(os.path.join(IMAGE_PATH, 'syspl.png')), 
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'SYSPL.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'SYSPL.png')), 
+        size=(96,126)   
+    )
+
+    SYSFAZENDA = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'SYSFAZENDA.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'SYSFAZENDA.png')), 
+        size=(96,126)   
+    )
+
+    SYSDIVIDA = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'SYSDIVIDA.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'SYSDIVIDA.png')), 
         size=(96,126)   
     )
 
@@ -133,7 +145,12 @@ class Images:
         light_image=Image.open(os.path.join(IMAGE_PATH, 'mod3-disable.png')), 
         dark_image=Image.open(os.path.join(IMAGE_PATH, 'mod3-disable.png')), 
         size=(114, 230)   
- 
+    )
+
+    BTN_ATTACH = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'attach.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'attach.png')), 
+        size=(40, 40)   
     )
 
     ICON = os.path.join(IMAGE_PATH, 'favicon_transparent_32x32.ico')

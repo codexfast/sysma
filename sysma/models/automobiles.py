@@ -15,7 +15,8 @@ class Automobiles(Base):
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
     
-    placa = Column(String, unique=True)
+    placa = Column(String)
+    placa_mercosul = Column(String)
     renavam = Column(String)
     chassi = Column(String)
 

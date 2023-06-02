@@ -112,7 +112,8 @@ class Worker(BaseWindow):
             history_id=self.create_history(),
             pb_step=self.pb_step,
             lb_perc=self.lb_perc_var,
-            lb_step=self.lb_step_var,   
+            lb_step=self.lb_step_var,
+            project_id=self.project_id
         )
 
         

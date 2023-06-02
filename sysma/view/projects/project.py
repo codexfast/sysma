@@ -1,7 +1,8 @@
 from view.base import BaseWindow, BaseForm
 from modules.syspl.view import View as SysplView
 
-from config import Images, DB_ENGINE
+from config import Images, DB_ENGINE, DOCUMENTS_FOLDER
+from controllers.functionalities.import_export_xlsx import do_import
 
 from tkcalendar import Calendar
 
@@ -12,10 +13,12 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 from models.projects import Projects
+from modules.syspl.screen.worker import Worker
+
 
 from tkinter import ttk
 from tkinter import messagebox
-
+from tkinter import filedialog
 
 
 
@@ -118,13 +121,29 @@ class NewProjectWindow(BaseWindow):
 
         if data["name"] and data["leiloeiro"] and data["date_start"] and data["patio"]:
             
-            with Session(DB_ENGINE) as session, session.begin():
+            path = self.attach_file()
+            
+            if path:
 
-                session.add(Projects(**data))
+                with Session(DB_ENGINE) as session:
 
-                showinfo(parent=self, title="Projeto", message="Projeto criado com sucesso!")
+                    p = Projects(**data)
+                    
+                    session.add(p)
+                    session.commit()
+                    session.refresh(p)
+                    # session.flush()
 
-                self._destroy()
+                    # if not do_import(filename=path, project_id=p.id, parent=self):
+                    #     session.rollback()
+                    # else:
+                    #     session.commit()
+
+                    r = do_import(filename=path, project_id=p.id, parent=self)
+
+
+                    showinfo(parent=self, title="Projeto", message="Projeto criado com sucesso!")
+                    self._destroy()
 
         
         else:
@@ -133,6 +152,17 @@ class NewProjectWindow(BaseWindow):
         # print(name, leiloeiro, date_start, patio, estado, endereco, cidade, descricao, sep='|')
         # print(len(descricao))
 
+    def attach_file(self):
+    
+        return filedialog.askopenfilename(
+            parent=self,
+            initialdir=DOCUMENTS_FOLDER,
+            title="Selecione uma planilha",
+            filetypes=(
+                ("Arquivo Excel", "*.xlsx*"),
+            ),
+
+        )
 
     def open_calendar(self):
         pick_calendar = _C(self)
@@ -207,7 +237,7 @@ class ProjectManagerWindow(BaseWindow):
         self.resizable(False, False)
         self.title(f'Projeto #{self.data.id} - {"ABERTO" if not self.data.finished_at else "FECHADO"}')
         self.draw_title(self.data.name)
-        self.center(height=500, width=700)
+        self.center(height=300, width=700)
 
         self.add_widgets()
 
@@ -232,43 +262,38 @@ class ProjectManagerWindow(BaseWindow):
 
         mod1 = BaseForm.buttonv3(
             self,
-            114,
-            230,
-            image=Images.BTN_MOD1,
+            96,
+            126,
+            image=Images.SYSPL,
             command=lambda: \
-                BaseWindow.open_top_level(
-                    self, 
-                    self.toplevel_window, 
-                    SysplView,
-                    project_id=self.data.id
-            )
+                BaseWindow.open_top_level(self, self.toplevel_window, Worker, project_id=self.data.id)
         )
 
         mod2 = BaseForm.buttonv3(
             self,
-            114,
-            230,
-            image=Images.BTN_MOD2,
+            96,
+            126,
+            image=Images.SYSFAZENDA,
             command=lambda: print("Módulo II inexistente")
         )
 
         mod3 = BaseForm.buttonv3(
             self,
-            114,
-            230,
-            image=Images.BTN_MOD3,
+            96,
+            126,
+            image=Images.SYSDIVIDA,
             command=lambda: print("Módulo III inexistente")
         )
 
         # places
-        footer_lb.place(x=287, y=444)
+        footer_lb.place(x=287, y=267)
         
-        mod1.place(x=134, y=135)
-        mod2.place(x=293, y=135)
-        mod3.place(x=452, y=135)
+        mod1.place(x=166, y=87)
+        mod2.place(x=302, y=87)
+        mod3.place(x=438, y=87)
 
-        ball_sep1.place(x=268, y=247)
-        ball_sep2.place(x=427, y=247)
+        ball_sep1.place(x=279, y=147)
+        ball_sep2.place(x=415, y=147)
 
 
     def __load(self, _id):

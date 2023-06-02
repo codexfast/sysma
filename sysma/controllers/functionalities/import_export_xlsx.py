@@ -5,17 +5,7 @@ from tkinter import messagebox
 from controllers.core.sysmas_resource import LoadSysmaResource 
 
 
-def do_import(parent, project_id):
-
-    filename = customtkinter.filedialog.askopenfilename(
-        initialdir=config.DOCUMENTS_FOLDER,
-        title="Selecione uma planilha",
-        filetypes=(
-            ("Arquivo Excel", "*.xlsx*"),
-        ),
-        parent=parent
-    )
-
+def do_import(parent, project_id, filename):
     if filename:
 
         try: 
@@ -23,7 +13,7 @@ def do_import(parent, project_id):
 
         except TypeError:
             messagebox.showerror("XLSX", "Erro ao ler planilha, ou versão não suportada!", parent=parent)
-            return;
+            return False;
 
         if loaded_assets.invalid_resources:
             report = messagebox.askyesno("Erro na planilha encontrado", "Deseja gerar planilha com os erros?", icon="warning", parent=parent)
@@ -52,8 +42,10 @@ def do_import(parent, project_id):
 
             messagebox.showinfo("Sucesso", "Dados importados com sucesso!", parent=parent)
 
+            return True
         else:
             messagebox.showerror("Erro", "Dados não importados!", parent=parent)
 
         # BaseWindow.open_top_level(self.master, self.toplevel_window, ProgressBar)
 
+    return False

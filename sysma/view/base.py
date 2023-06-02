@@ -77,8 +77,8 @@ class BaseForm:
             font=customtkinter.CTkFont(family="Arial", size=12, weight="normal"),
             fg_color="#3B97D3",
             width=105,
-            height=30,
-            corner_radius=15,
+            height=40,
+            corner_radius=20,
             text_color="#fff",
             command=command
         )
@@ -116,7 +116,7 @@ class BaseForm:
             hover=None,
             fg_color="transparent",
             bg_color="transparent",
-            corner_radius=0,
+            
             **kwargs
         )
 

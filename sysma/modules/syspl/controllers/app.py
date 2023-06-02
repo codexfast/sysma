@@ -2,6 +2,7 @@ from controllers.core.web import create_webdriver
 from controllers.core.web import webdriver
 from controllers.data import Resources
 from controllers.core.xlsx import DataExport
+from controllers.functionalities.tools import *
 
 from ..models.syspl import SysplData
 from ..models.syspl import SysplLogin
@@ -103,6 +104,7 @@ class Syspl(threading.Thread):
             threadId: int,
             threadName: str,
             history_id: int,
+            project_id: int,
             view: customtkinter.CTk,
             pb_step: customtkinter.CTkProgressBar, 
             lb_step: customtkinter.CTkLabel, 
@@ -111,7 +113,7 @@ class Syspl(threading.Thread):
 
         threading.Thread.__init__(self)
 
-        self.resources = Resources()
+        self.resources = Resources(project_id=project_id)
 
         self.view = view
         self.threadId = threadId
@@ -304,6 +306,33 @@ class Syspl(threading.Thread):
         self.driver.switch_to.default_content();
 
         return obj
+    
+    def update_auto(self, auto: SysplData, new_placa, new_data):
+            auto.placa=new_placa,
+            auto.finaceira_nome=new_data.get("finaceira_nome"),
+            auto.finaceira_vigencia_do_contrato=new_data.get("finaceira_vigência_do_contrato"),
+            auto.dados_veiculo_restricao_1=new_data.get("dados_veiculo_restrição_1"),
+            auto.comun_venda_data_da_inclusao=new_data.get("comun_venda_data_da_inclusão"),
+            auto.dados_veiculo_bloqueio_de_guincho=new_data.get("dados_veiculo_bloqueio_de_guincho"),
+            auto.dados_veiculo_ultimo_licenciamento=new_data.get("dados_veiculo_último_licenciamento"),
+
+            auto.bloqueio_1_tipo = new_data.get("bloqueio_1_tipo"),
+            auto.bloqueio_1_data_inclusao = new_data.get("bloqueio_1_data_inclusão"),
+            auto.bloqueio_1_descricao = new_data.get("bloqueio_1_descrição"),
+
+            auto.bloqueio_2_tipo = new_data.get("bloqueio_2_tipo"),
+            auto.bloqueio_2_data_inclusao = new_data.get("bloqueio_2_data_inclusão"),
+            auto.bloqueio_2_descricao = new_data.get("bloqueio_2_descrição"),
+
+            auto.bloqueio_3_tipo = new_data.get("bloqueio_3_tipo"),
+            auto.bloqueio_3_data_inclusao = new_data.get("bloqueio_3_data_inclusão"),
+            auto.bloqueio_3_descricao = new_data.get("bloqueio_3_descrição"),
+
+            auto.bloqueio_4_tipo = new_data.get("bloqueio_4_tipo"),
+            auto.bloqueio_4_data_inclusao = new_data.get("bloqueio_4_data_inclusão"),
+            auto.bloqueio_4_descricao = new_data.get("bloqueio_4_descrição"),
+    
+            auto.failed = False
 
     def record_auto(self, auto: Auto = {}, placa=None):
         
@@ -320,7 +349,7 @@ class Syspl(threading.Thread):
 
                 session.add(SysplData(
                     history_id=self.history_id,
-                    placa=auto.get("dados_veiculo_placa"),
+                    placa=placa,
                     finaceira_nome=auto.get("finaceira_nome"),
                     finaceira_vigencia_do_contrato=auto.get("finaceira_vigência_do_contrato"),
                     dados_veiculo_restricao_1=auto.get("dados_veiculo_restrição_1"),
@@ -377,20 +406,38 @@ class Syspl(threading.Thread):
             placa = auto.placa
             percent = (100 * c) // len(self.resources)
 
-
+            # caso tenha guias abertas, fecha uma
             self.close_add_window()
 
-            if c % 5 == 0:
-                self.relogin()
-            
-            _auto = self.load_by_plate(placa)
+            for i in range(1,5):
 
-            if _auto:
-                self.record_auto(_auto)
-            else:
-                self.record_auto(placa=auto.placa)
-            
-            
+                try:
+
+                    if c % 5 == 0:
+                        self.relogin()
+                    
+                    _auto = self.load_by_plate(placa)
+
+                    if _auto:
+                        if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe"):
+                            self.record_auto(_auto, placa=auto.placa)
+                        else:
+                            self.record_auto(placa=auto.placa)
+
+
+                    else:
+                        if i != 5:
+                            self.lb_step.set(f"Placa ({auto.placa}) sem dados, tentando novamente [{i}*][{c} - {len(self.resources)}]")
+                            continue
+
+                        # caso termine as tentativas, grave com falha no banco
+                        self.record_auto(placa=auto.placa)
+                    break
+                
+                except Exception as e:
+                    self.lb_step.set("Erro critico!!!", e)
+                    continue
+
             # se carro for concluido atualiza barra de progresso
             try:
                 self.lb_perc.set(f"{percent}%")
@@ -404,17 +451,86 @@ class Syspl(threading.Thread):
             self.view.update()
 
         else:
-            export_now = messagebox.askyesno(parent=self.view, title="Finalizado!", message="Deseja exportar agora?")
 
-            if export_now:
+            # export_now = messagebox.askyesno(parent=self.view, title="Finalizado!", message="Deseja exportar agora?")
+
+            # if export_now:
                 
-                path = customtkinter.filedialog.askdirectory(parent=self.view)
+            #     path = customtkinter.filedialog.askdirectory(parent=self.view)
 
-                if do_export(path, self.history_id):
-                    messagebox.showinfo(parent=self.view, title="Sucesso", message="Exportação concluida!")
+            #     if do_export(path, self.history_id):
+            #         messagebox.showinfo(parent=self.view, title="Sucesso", message="Exportação concluida!")
 
-                else:
-                    showerror(parent=self.view, title="0", message="Erro na exportação!!!")
+            #     else:
+            #         showerror(parent=self.view, title="0", message="Erro na exportação!!!")
 
+            with Session(config.DB_ENGINE) as session:
+                failed = \
+                    session.query(SysplData).filter(
+                        SysplData.history_id == 1, SysplData.failed == True
+                    ).all()
+                
+                if not len(failed):
+                    return None
+
+                self.pb_step.set(0)
+                self.lb_perc.set(f"0%")
+
+                iter_ = 1 / len(failed)
+
+                for index, auto in enumerate(failed, start=1):
+                    percent = (100 * index) // len(failed)
+                    
+
+                    if self.lock_selenium:
+                        return None
+                    
+                    converted = plate_convert(auto.placa)
+
+                    self.lb_step.set(f"Reverificando placa {converted} convertida (Mercosul/Tradicional)")
+                    
+                    # reprocessar placas
+
+                    # caso tenha guias abertas, fecha uma
+                    self.close_add_window()
+
+                    # 5 tentativas para verificar para cada placa
+                    for i in range(1,5):
+
+                        try:
+
+                            if index % 5 == 0:
+                                # refaça login a cada 5 placas
+                                self.relogin()
+                            
+                            _auto = self.load_by_plate(converted)
+
+                            if _auto:
+                                if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe") and _auto.get("Renavam"):
+                                    self.update_auto(auto, converted, _auto)
+                                    session.commit()
+
+                            else:
+                                if i != 5:
+                                    self.lb_step.set(f"Placa ({converted}) sem dados, tentando novamente [{i}*][{index} - {len(failed)}]")
+                                    continue
+                            
+                                # caso termine as tentativas, grave com falha no banco
+                                self.record_auto(placa=auto.placa) # mudar
+                            break
+                    
+                        except Exception as e:
+                            self.lb_step.set("Erro critico!!!")
+                            print(e)
+                            continue
+                    
+                    # se carro for concluido atualiza barra de progresso
+                    try:
+                        self.lb_perc.set(f"{percent}%")
+                        self.pb_step.set(index*(iter_))
+
+                    except:
+                        self.driver.quit()
+                        break
 
             # self.view._destroy()

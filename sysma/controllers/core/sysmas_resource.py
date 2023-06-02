@@ -1,5 +1,6 @@
 from .xlsx import Xlsx
 from models.automobiles import Automobiles
+from controllers.functionalities.tools import *
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
@@ -68,12 +69,13 @@ class LoadSysmaResource(Xlsx):
         with Session(config.DB_ENGINE) as session, session.begin():
 
             # limpa tudo antes dos novos dados
-            session.execute(Delete(Automobiles))
+            # session.execute(Delete(Automobiles))
 
             # inserido novos dados validos
             autos = [Automobiles(
                 project_id=project_id,
-                placa=placa,
+                placa=plate_convert(placa) if is_mercosul(placa) else placa,
+                placa_mercosul=plate_convert(placa) if not is_mercosul(placa) else placa,
                 renavam=renavam,
                 chassi=chassi,
             ) for (placa, renavam, chassi) in self.valid_resources]
