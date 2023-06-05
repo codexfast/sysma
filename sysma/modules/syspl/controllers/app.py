@@ -143,12 +143,12 @@ class Syspl(threading.Thread):
             login = session.query(SysplLogin).one_or_none()
 
             # Encontra input usuario e preenche com login
-            # self.driver.find_element(By.XPATH, '//*[@id="username"]').send_keys(login.username)
-            self.driver.find_element(By.XPATH, '//*[@id="username"]').send_keys("36490625857")
+            self.driver.find_element(By.XPATH, '//*[@id="username"]').send_keys(login.username)
+            # self.driver.find_element(By.XPATH, '//*[@id="username"]').send_keys("36490625857")
 
             # Encontra input senha e preenche com senha
-            self.driver.find_element(By.XPATH, '//*[@id="password"]').send_keys("rennan10")
-            # self.driver.find_element(By.XPATH, '//*[@id="password"]').send_keys(login.password)
+            # self.driver.find_element(By.XPATH, '//*[@id="password"]').send_keys("rennan10")
+            self.driver.find_element(By.XPATH, '//*[@id="password"]').send_keys(login.password)
 
 
         # envia input

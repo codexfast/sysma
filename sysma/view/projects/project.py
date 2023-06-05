@@ -1,6 +1,7 @@
 from view.base import BaseWindow, BaseForm
 from modules.syspl.view import View as SysplView
 from modules.syspl.screen.history import History
+from modules.syspl.models.syspl import SysplLogin
 
 from config import Images, DB_ENGINE, DOCUMENTS_FOLDER
 from controllers.functionalities.import_export_xlsx import do_import
@@ -266,8 +267,7 @@ class ProjectManagerWindow(BaseWindow):
             96,
             126,
             image=Images.SYSPL,
-            command=lambda: \
-                BaseWindow.open_top_level(self, self.toplevel_window, Worker, project_id=self.data.id)
+            command=self.open_syspl_worker
         )
 
         mod2 = BaseForm.buttonv3(
@@ -311,3 +311,18 @@ class ProjectManagerWindow(BaseWindow):
     def __load(self, _id):
         with Session(DB_ENGINE) as session:
             return session.query(Projects).filter(Projects.id==_id).one()
+        
+
+    def open_syspl_worker(self):
+
+        with Session(DB_ENGINE) as session:
+
+            login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
+
+            if login_syspl:
+                if login_syspl.username and login_syspl.password:
+                    BaseWindow.open_top_level(self, self.toplevel_window, Worker, project_id=self.data.id)
+
+                    return;
+
+            return messagebox.showwarning("Atenção", "Verifique os dados de login do sispl para continuar!", parent=self)

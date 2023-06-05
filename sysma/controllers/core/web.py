@@ -3,6 +3,8 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from subprocess import CREATE_NO_WINDOW # This flag will only be available in windows
+
 
 
 def _delay(delay:int = 2) -> int:
@@ -17,6 +19,7 @@ def create_webdriver() -> webdriver.Chrome:
 
     # Baixa driver
     chrome_driver = Service(ChromeDriverManager().install())
+    chrome_driver.creation_flags = CREATE_NO_WINDOW
     
     options = webdriver.ChromeOptions()
     # options.add_experimental_option("detach", False)

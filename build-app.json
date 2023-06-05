@@ -31,7 +31,11 @@
   },
   {
    "optionDest": "clean_build",
-   "value": false
+   "value": true
+  },
+  {
+   "optionDest": "loglevel",
+   "value": "FATAL"
   },
   {
    "optionDest": "strip",

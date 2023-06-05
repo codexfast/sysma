@@ -60,13 +60,14 @@ class BaseForm:
     }
 
     @staticmethod
-    def entry(parent, width: int, height: int = 40, placeholder: str = "Entry") -> customtkinter.CTkEntry:
+    def entry(parent, width: int, height: int = 40, placeholder: str = "Entry", **kwargs) -> customtkinter.CTkEntry:
         return customtkinter.CTkEntry(
             parent, 
             width=width, 
             height=height, 
             placeholder_text=placeholder,
-            **BaseForm._CONFIG
+            **BaseForm._CONFIG,
+            **kwargs
         )
 
     @staticmethod
