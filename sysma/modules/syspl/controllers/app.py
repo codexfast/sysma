@@ -308,29 +308,30 @@ class Syspl(threading.Thread):
         return obj
     
     def update_auto(self, auto: SysplData, new_placa, new_data):
-            auto.placa=new_placa,
-            auto.finaceira_nome=new_data.get("finaceira_nome"),
-            auto.finaceira_vigencia_do_contrato=new_data.get("finaceira_vigência_do_contrato"),
-            auto.dados_veiculo_restricao_1=new_data.get("dados_veiculo_restrição_1"),
-            auto.comun_venda_data_da_inclusao=new_data.get("comun_venda_data_da_inclusão"),
-            auto.dados_veiculo_bloqueio_de_guincho=new_data.get("dados_veiculo_bloqueio_de_guincho"),
-            auto.dados_veiculo_ultimo_licenciamento=new_data.get("dados_veiculo_último_licenciamento"),
+            
+            auto.placa=new_placa
+            auto.finaceira_nome=new_data.get("finaceira_nome")
+            auto.finaceira_vigencia_do_contrato=new_data.get("finaceira_vigência_do_contrato")
+            auto.dados_veiculo_restricao_1=new_data.get("dados_veiculo_restrição_1")
+            auto.comun_venda_data_da_inclusao=new_data.get("comun_venda_data_da_inclusão")
+            auto.dados_veiculo_bloqueio_de_guincho=new_data.get("dados_veiculo_bloqueio_de_guincho")
+            auto.dados_veiculo_ultimo_licenciamento=new_data.get("dados_veiculo_último_licenciamento")
 
-            auto.bloqueio_1_tipo = new_data.get("bloqueio_1_tipo"),
-            auto.bloqueio_1_data_inclusao = new_data.get("bloqueio_1_data_inclusão"),
-            auto.bloqueio_1_descricao = new_data.get("bloqueio_1_descrição"),
+            auto.bloqueio_1_tipo = new_data.get("bloqueio_1_tipo")
+            auto.bloqueio_1_data_inclusao = new_data.get("bloqueio_1_data_inclusão")
+            auto.bloqueio_1_descricao = new_data.get("bloqueio_1_descrição")
 
-            auto.bloqueio_2_tipo = new_data.get("bloqueio_2_tipo"),
-            auto.bloqueio_2_data_inclusao = new_data.get("bloqueio_2_data_inclusão"),
-            auto.bloqueio_2_descricao = new_data.get("bloqueio_2_descrição"),
+            auto.bloqueio_2_tipo = new_data.get("bloqueio_2_tipo")
+            auto.bloqueio_2_data_inclusao = new_data.get("bloqueio_2_data_inclusão")
+            auto.bloqueio_2_descricao = new_data.get("bloqueio_2_descrição")
 
-            auto.bloqueio_3_tipo = new_data.get("bloqueio_3_tipo"),
-            auto.bloqueio_3_data_inclusao = new_data.get("bloqueio_3_data_inclusão"),
-            auto.bloqueio_3_descricao = new_data.get("bloqueio_3_descrição"),
+            auto.bloqueio_3_tipo = new_data.get("bloqueio_3_tipo")
+            auto.bloqueio_3_data_inclusao = new_data.get("bloqueio_3_data_inclusão")
+            auto.bloqueio_3_descricao = new_data.get("bloqueio_3_descrição")
 
-            auto.bloqueio_4_tipo = new_data.get("bloqueio_4_tipo"),
-            auto.bloqueio_4_data_inclusao = new_data.get("bloqueio_4_data_inclusão"),
-            auto.bloqueio_4_descricao = new_data.get("bloqueio_4_descrição"),
+            auto.bloqueio_4_tipo = new_data.get("bloqueio_4_tipo")
+            auto.bloqueio_4_data_inclusao = new_data.get("bloqueio_4_data_inclusão")
+            auto.bloqueio_4_descricao = new_data.get("bloqueio_4_descrição")
     
             auto.failed = False
 
@@ -488,28 +489,24 @@ class Syspl(threading.Thread):
                         try:
 
                             if index % 5 == 0:
-                                # refaça login a cada 5 placas
+                                # refaça login a cada 3 placas
                                 self.relogin()
                             
-                            _auto = self.load_by_plate(converted)
+                            new_data = self.load_by_plate(converted)
 
-                            if _auto:
-                                if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe") and _auto.get("dados_veiculo_renavam"):
-                                    self.update_auto(auto, converted, _auto)
+                            if new_data:
+                                if not new_data.get("veículo_para_leilão_não_encontrado_[mainframe") and new_data.get("dados_veiculo_renavam"):
                                     
+                                    self.update_auto(auto, converted, new_data)
 
                             else:
                                 if i != 5:
                                     self.lb_step.set(f"Placa ({converted}) sem dados, tentando novamente [{i}*][{index} - {len(failed)}]")
                                     continue
-                            
-                                # caso termine as tentativas, grave com falha no banco
-                                self.record_auto(placa=auto.placa) # mudar
                             break
                     
                         except Exception as e:
                             self.lb_step.set("Erro critico!!!")
-                            print(e)
                             continue
                     
                     # se carro for concluido atualiza barra de progresso
@@ -521,7 +518,8 @@ class Syspl(threading.Thread):
                         self.driver.quit()
                         break
             
-            session.commit()
+                session.commit()
+                
             export_now = messagebox.askyesno(parent=self.view, title="Finalizado!", message="Deseja exportar agora?")
 
             if export_now:
