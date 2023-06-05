@@ -6,6 +6,7 @@ from controllers.functionalities.tools import *
 
 from ..models.syspl import SysplData
 from ..models.syspl import SysplLogin
+from models.automobiles import Automobiles
 
 from sqlalchemy.orm import Session
 
@@ -122,6 +123,7 @@ class Syspl(threading.Thread):
         self.lb_step = lb_step
         self.lb_perc = lb_perc
         self.history_id = history_id
+        self.project_id = project_id
 
         self.driver: webdriver = create_webdriver()
 
@@ -335,6 +337,13 @@ class Syspl(threading.Thread):
     
             auto.failed = False
 
+    def update_renavam_chassi(self, session: Session, placa_tradicional, renavam, chassi):
+        
+        _auto = session.query(Automobiles).filter(Automobiles.placa == placa_tradicional, Automobiles.project_id == self.project_id).one()
+        
+        _auto.chassi = chassi
+        _auto.renavam = renavam
+
     def record_auto(self, auto: Auto = {}, placa=None):
         
         with Session(config.DB_ENGINE) as session, session.begin():
@@ -347,6 +356,8 @@ class Syspl(threading.Thread):
                     )
                 )
             ):
+                
+                self.update_renavam_chassi(session, placa, auto.get("dados_veiculo_renavam"), auto.get("dados_veiculo_chassi"))
 
                 session.add(SysplData(
                     history_id=self.history_id,
@@ -496,9 +507,11 @@ class Syspl(threading.Thread):
 
                             if new_data:
                                 if not new_data.get("veículo_para_leilão_não_encontrado_[mainframe") and new_data.get("dados_veiculo_renavam"):
-                                    
+                                    self.update_renavam_chassi(session, auto.placa, new_data.get("dados_veiculo_renavam"), new_data.get("dados_veiculo_chassi"))
                                     self.update_auto(auto, converted, new_data)
 
+                                else:
+                                    continue
                             else:
                                 if i != 5:
                                     self.lb_step.set(f"Placa ({converted}) sem dados, tentando novamente [{i}*][{index} - {len(failed)}]")
