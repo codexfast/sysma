@@ -30,6 +30,9 @@ class SysplData(Base):
     history_id = Column(Integer, ForeignKey("sysplhistory.id"), nullable=False)
     
     placa = Column(String, default=None)
+    renavam = Column(String, default=None)
+    chassi = Column(String, default=None)
+
     finaceira_nome = Column(String, default=None)
     finaceira_vigencia_do_contrato = Column(String, default=None)
     dados_veiculo_restricao_1 = Column(String, default=None)

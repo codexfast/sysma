@@ -1,7 +1,7 @@
 from view.base import BaseWindow, BaseForm
-from modules.syspl.view import View as SysplView
+# from modules.syspl.view import View as SysplView
 from modules.syspl.screen.history import History
-from modules.syspl.models.syspl import SysplLogin
+from modules.syspl.models.syspl import SysplLogin, SysplData, SysplHistory
 
 from config import Images, DB_ENGINE, DOCUMENTS_FOLDER
 from controllers.functionalities.import_export_xlsx import do_import
@@ -15,7 +15,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 from models.projects import Projects
-from modules.syspl.screen.worker import Worker
+
+from modules.sysfazenda.screen.worker import Worker as SysFazendaWorker
+from modules.syspl.screen.worker import Worker as SysplWorker
 
 
 from tkinter import ttk
@@ -275,7 +277,7 @@ class ProjectManagerWindow(BaseWindow):
             96,
             126,
             image=Images.SYSFAZENDA,
-            command=lambda: print("Módulo II inexistente")
+            command=self.open_sysfazenda_worker
         )
 
         mod3 = BaseForm.buttonv3(
@@ -321,8 +323,22 @@ class ProjectManagerWindow(BaseWindow):
 
             if login_syspl:
                 if login_syspl.username and login_syspl.password:
-                    BaseWindow.open_top_level(self, self.toplevel_window, Worker, project_id=self.data.id)
+                    BaseWindow.open_top_level(self, self.toplevel_window, SysplWorker, project_id=self.data.id)
 
                     return;
 
             return messagebox.showwarning("Atenção", "Verifique os dados de login do sispl para continuar!", parent=self)
+    
+    def open_sysfazenda_worker(self):
+
+        with Session(DB_ENGINE) as session:
+            
+            last_history = session.query(SysplHistory).filter(SysplHistory.project_id == self.data.id).order_by(SysplHistory.id.desc()).first()
+
+            syspl_data = \
+                session.query(SysplData).filter(SysplData.history_id == last_history.id).all() if not last_history is None else []
+                
+            if len(syspl_data):
+                BaseWindow.open_top_level(self, self.toplevel_window, SysFazendaWorker, project_id=self.data.id, syspl_data=syspl_data)
+            else:
+                messagebox.showwarning("Sysfazenda", "Sem dados para processar com 'SysFazenda'", parent=self)

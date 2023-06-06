@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from tkinter import messagebox
 
 from modules.syspl.models.syspl import SysplLogin
+from modules.sysfazenda.models.sysfazenda import SysFazendalConfig
 from view.base import BaseWindow, BaseForm
 from config import DB_ENGINE
 
@@ -16,7 +17,7 @@ class Configs(BaseWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.center(500,245)
+        self.center(500,421)
         self.configure(fg_color=("#fff", "#333"))
         self.resizable(False, False)
         # self.iconbitmap()
@@ -24,8 +25,9 @@ class Configs(BaseWindow):
 
         # set vars
 
-        self.user_sispl_var = customtkinter.StringVar(value="")
-        self.password_sispl_var = customtkinter.StringVar(value="")
+        self.user_sispl_var = customtkinter.StringVar(value=None)
+        self.password_sispl_var = customtkinter.StringVar(value=None)
+        self.key_sysfazenda_var = customtkinter.StringVar(value=None)
 
         self.load_config()
         self.add_widgets()
@@ -38,12 +40,24 @@ class Configs(BaseWindow):
 
         lb_sispl = customtkinter.CTkLabel(
 			self,
-            text="Sispl login",
+            text="Sispl Login",
             font=customtkinter.CTkFont(family="Arial", size=15),
             text_color="#737373",
 		)
         user_sispl = BaseForm.entry(self, 200, placeholder="Usuário", textvariable=self.user_sispl_var)
         password_sispl = BaseForm.entry(self, 200, placeholder="Senha", show="*", textvariable=self.password_sispl_var)
+
+        ###
+
+        # Sys Fazenda area
+        lb_sysfazenda = customtkinter.CTkLabel(
+			self,
+            text="Anti Captcha",
+            font=customtkinter.CTkFont(family="Arial", size=15),
+            text_color="#737373",
+		)
+
+        key = BaseForm.entry(self, 410, placeholder="KEY", textvariable=self.key_sysfazenda_var, show="*")
 
         ###
 
@@ -58,12 +72,19 @@ class Configs(BaseWindow):
             command=self.set_config
         )
 
-        btn_save.place(x=355, y=175)
+        btn_save.place(x=355, y=351)
 
         # sispl place
         lb_sispl.place(x=40, y=88)
         user_sispl.place(x=40, y=113)
         password_sispl.place(x=250, y=113)
+
+        ###
+
+        # Sysfazenda place
+
+        lb_sysfazenda.place(x=40, y=173)
+        key.place(x=40, y=198)
 
         ###
 
@@ -85,18 +106,29 @@ class Configs(BaseWindow):
         with Session(DB_ENGINE) as session:
 
             login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
+            config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
 
             if login_syspl:
                 self.user_sispl_var.set(login_syspl.username)
                 self.password_sispl_var.set(login_syspl.password)
+
+            if config_sysfazenda:
+                self.key_sysfazenda_var.set(config_sysfazenda.anti_captcha_key)
 
 
     def set_config(self):
 
         with Session(DB_ENGINE) as session, session.begin():
 
-            # sispl login
             login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
+            config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
+
+            if config_sysfazenda:
+                config_sysfazenda.anti_captcha_key = self.key_sysfazenda_var.get()
+
+            else:
+                # caso não exista dados para login, cria no banco
+                session.add(SysFazendalConfig(anti_captcha_key=self.key_sysfazenda_var.get()))
 
             if login_syspl:
                 login_syspl.username = self.user_sispl_var.get()

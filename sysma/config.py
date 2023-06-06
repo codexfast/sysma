@@ -12,6 +12,7 @@ Base = declarative_base()
 from models.automobiles import Automobiles
 from models.projects import Projects
 from modules.syspl.models.syspl import *
+from modules.sysfazenda.models.sysfazenda import *
 
 from PIL import Image
 
@@ -154,6 +155,7 @@ class Images:
     )
 
     ICON = os.path.join(IMAGE_PATH, 'favicon_transparent_32x32.ico')
+    ICONV2 = os.path.join(IMAGE_PATH, 'icon.ico')
 
 @dataclasses.dataclass
 class Fonts:

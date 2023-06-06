@@ -1,12 +1,11 @@
 
-from controllers.core.sysmas_resource import LoadSysmaResource
 from view.projects.project import NewProjectWindow, ProjectsWindow
 from view.config import Configs as ConfigWindow
 from view.base import BaseWindow
-from tkinter import messagebox
+
 
 # Modules viwers
-from modules.syspl.view import View as SysplView
+# from modules.syspl.view import View as SysplView
 
 import customtkinter
 import config

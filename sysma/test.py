@@ -1,10 +1,11 @@
-from config import DB_ENGINE, SysplData, SysplLogin
+from config import *
 from sqlalchemy.orm import Session
 from controllers.functionalities.tools import plate_convert
 
+
 with Session(DB_ENGINE) as session:
 
-    login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
+    # last_history = session.query(SysplHistory).order_by(SysplHistory.id.desc()).first()
+    last_history = session.query(SysplHistory).filter(SysplHistory.project_id == 6).order_by(SysplHistory.id.desc()).first()
 
-    if login_syspl:
-        print(login_syspl.id)
+    print(last_history)

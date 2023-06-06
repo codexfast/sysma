@@ -312,6 +312,8 @@ class Syspl(threading.Thread):
     def update_auto(self, auto: SysplData, new_placa, new_data):
             
             auto.placa=new_placa
+            auto.renavam=new_data.get("dados_veiculo_renavam")
+            auto.chassi=new_data.get("dados_veiculo_chassi")
             auto.finaceira_nome=new_data.get("finaceira_nome")
             auto.finaceira_vigencia_do_contrato=new_data.get("finaceira_vigência_do_contrato")
             auto.dados_veiculo_restricao_1=new_data.get("dados_veiculo_restrição_1")
@@ -362,6 +364,8 @@ class Syspl(threading.Thread):
                 session.add(SysplData(
                     history_id=self.history_id,
                     placa=placa,
+                    renavam=auto.get("dados_veiculo_renavam"),
+                    chassi=auto.get("dados_veiculo_chassi"),
                     finaceira_nome=auto.get("finaceira_nome"),
                     finaceira_vigencia_do_contrato=auto.get("finaceira_vigência_do_contrato"),
                     dados_veiculo_restricao_1=auto.get("dados_veiculo_restrição_1"),
@@ -447,7 +451,7 @@ class Syspl(threading.Thread):
                     break
                 
                 except Exception as e:
-                    self.lb_step.set("Erro critico!!!", e)
+                    self.lb_step.set("Erro critico!!!")
                     continue
 
             # se carro for concluido atualiza barra de progresso

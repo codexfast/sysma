@@ -26,7 +26,7 @@ class App(customtkinter.CTk):
         # self.minsize(width=600, height=450)
         # self.after(0, lambda:self.state('zoomed'))
    
-        self.iconbitmap(default=config.Images.ICON)
+        self.iconbitmap(default=config.Images.ICONV2)
 
         # set grid layout 1x2
         self.grid_rowconfigure(0, weight=1)

@@ -35,7 +35,7 @@ class LoadSysmaResource(Xlsx):
         def resource_valid(resource):
             # assert len(resource) >= 3, "Verifique a planilha de entrada de dados"
 
-            placa, renavam, chassi = resource
+            placa, *d = resource
 
             # if placa:
             #     if renavam or chassi:
@@ -76,9 +76,9 @@ class LoadSysmaResource(Xlsx):
                 project_id=project_id,
                 placa=plate_convert(placa) if is_mercosul(placa) else placa,
                 placa_mercosul=plate_convert(placa) if not is_mercosul(placa) else placa,
-                renavam=renavam,
-                chassi=chassi,
-            ) for (placa, renavam, chassi) in self.valid_resources]
+                renavam="x",
+                chassi="x",
+            ) for (placa, *a) in self.valid_resources]
 
             session.add_all(autos)
 

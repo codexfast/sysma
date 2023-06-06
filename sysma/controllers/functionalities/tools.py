@@ -1,6 +1,5 @@
 import re
 
-
 def is_plate(str: str) -> bool:
     placa = re.compile("^[a-zA-Z]{3}[0-9][A-Za-z0-9][0-9]{2}$")
 
@@ -60,10 +59,4 @@ def plate_convert(placa: str) -> str:
     p[4] = rule_mercosul[p[4]]
 
     return "".join(p)
-
-if __name__ == "__main__":
-    placa = "DMW6133"
-
-    print(plate_convert(placa))
-    
 
