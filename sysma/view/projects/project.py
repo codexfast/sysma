@@ -336,9 +336,11 @@ class ProjectManagerWindow(BaseWindow):
             last_history = session.query(SysplHistory).filter(SysplHistory.project_id == self.data.id).order_by(SysplHistory.id.desc()).first()
 
             syspl_data = \
-                session.query(SysplData).filter(SysplData.history_id == last_history.id).all() if not last_history is None else []
+                session.query(SysplData)\
+                    .filter(SysplData.history_id == last_history.id, SysplData.failed == False).all()\
+                            if not last_history is None else []
                 
-            if len(syspl_data):
+            if syspl_data:
                 BaseWindow.open_top_level(self, self.toplevel_window, SysFazendaWorker, project_id=self.data.id, syspl_data=syspl_data)
             else:
                 messagebox.showwarning("Sysfazenda", "Sem dados para processar com 'SysFazenda'", parent=self)

@@ -4,7 +4,7 @@ from controllers.core.recaptcha import ReCaptcha
 from controllers.core.grabonpage import SFP
 from controllers.functionalities.tools import *
 
-from ..models.sysfazenda import SysFazendalConfig
+from ..models.sysfazenda import SysFazendalConfig, SysFazendaData
 
 from sqlalchemy.orm import Session
 
@@ -72,6 +72,31 @@ class SysFazenda(threading.Thread):
     def run(self):
         self.process()
     
+    def record_auto(self, placa: str, renavam: str, auto: SFP = None):
+        with Session(config.DB_ENGINE) as session, session.begin():
+
+            if auto:
+                session.add(
+                    SysFazendaData(
+                        history_id=self.history_id,
+                        placa=placa, 
+                        renavam=renavam,
+                        ipva=auto.ipva,
+                        divida_ativa=auto.divida_ativa,
+                        multa_renainf=auto.multas_renainf,
+                        multas_detran=auto.multas_detran,
+                        outras_multas=auto.outras_multas_sp,
+                        dpvat=auto.dpvat,
+                        taxa_licenciamento=auto.taxa_licenciamento,
+                    )
+                )
+            else:
+                session.add(
+                    SysFazendaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id)
+                )
+
+
+
     def load_by_renavam_placa(self, placa: str, renavam: str) -> SFP:
 
         self.driver.get(FAZENDA_CONSULTA)
@@ -80,6 +105,11 @@ class SysFazenda(threading.Thread):
         if not self.verify_title("Consulta de débitos do veículo"):
             return False
 
+        
+        # aguarda até tenha o campo renavam em tela
+        wait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "conteudoPaginaPlaceHolder_txtRenavam"))
+        )
         
         self.driver.find_element(By.ID, "conteudoPaginaPlaceHolder_txtRenavam").send_keys(renavam)
         self.driver.find_element(By.ID, "conteudoPaginaPlaceHolder_txtPlaca").send_keys(placa)
@@ -130,18 +160,22 @@ class SysFazenda(threading.Thread):
                     _auto = self.load_by_renavam_placa(placa, renavam)
 
                     if _auto:
-                        pass
-                    # else:
-                        # if i != 5:
-                        #     self.lb_step.set(f"Placa ({auto.placa}) sem dados, tentando novamente [{i}*][{c} - {len(self.resources)}]")
-                        #     continue
+                        self.record_auto(placa=auto.placa, renavam=auto.placa, auto=_auto)
+                    else:
+                        if i != 5:
+                            self.lb_step.set(
+                                f"Placa/Renavam ({auto.placa}/{auto.renavam}) sem dados, tentando novamente [{i}*][{c} - {len(self.resources)}]"
+                            )
+                             
+                            continue
 
-                        # # caso termine as tentativas, grave com falha no banco
-                        # self.record_auto(placa=auto.placa)
+                        # caso termine as tentativas, grave com falha no banco
+                        self.record_auto(placa=auto.placa, renavam=auto.placa)
                     break
                 
                 except Exception as e:
                     self.lb_step.set("Erro critico!!!")
+                    print(e)
                     continue
 
             # se carro for concluido atualiza barra de progresso

@@ -276,6 +276,7 @@ class DividaAtiva(GrabOnPage):
             )
 
             element.send_keys(self.renavam)
+            
             for i in range(1):
                 if ReCaptcha(self.driver, key, recaptcha_data_site_key_ID="recaptcha").solve(recaptcha_res="g-recaptcha-response"):
                     break
