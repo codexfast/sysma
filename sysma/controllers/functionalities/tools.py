@@ -1,4 +1,5 @@
 import re
+import typing
 
 def is_plate(str: str) -> bool:
     placa = re.compile("^[a-zA-Z]{3}[0-9][A-Za-z0-9][0-9]{2}$")
@@ -60,3 +61,23 @@ def plate_convert(placa: str) -> str:
 
     return "".join(p)
 
+
+def compare(_iterator1, _iterator2):
+    
+    if len(_iterator1) == len(_iterator2):
+        if not False in list(map(lambda i: i in _iterator1, _iterator2)):
+            return True
+    
+    return False
+
+def selecionar_contas(montante: float, contas_por_data:typing.List[typing.Dict]) -> typing.List:
+
+    selecionadas = []
+    
+    for conta in contas_por_data:
+        if conta['value'] <= montante:  # se a conta puder ser paga com o montante restante
+            selecionadas.append(conta)  # adiciona a conta às selecionadas
+            montante -= conta['value']  # subtrai a quantia da conta do montante restante
+        if montante == 0:  # se não há mais dinheiro restante
+            break  # interrompe a seleção de contas
+    return selecionadas

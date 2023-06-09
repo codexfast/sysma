@@ -1,5 +1,5 @@
 from view.base import BaseWindow
-from ..models.sysfazenda import SysFazendaHistory, SysFazendaData
+from ..models.sysdivida import SysDividaHistory, SysDividaData
 from ..controllers.app import do_export
 
 from tkinter import ttk
@@ -31,8 +31,8 @@ class History(BaseWindow):
             _id = item['values'][0]
 
             with Session(config.DB_ENGINE) as session:
-                data = session.query(SysFazendaData)\
-                    .filter(SysFazendaData.history_id==_id and SysFazendaData.failed==False).all()
+                data = session.query(SysDividaData)\
+                    .filter(SysDividaData.history_id==_id and SysDividaData.failed==False).all()
                 
                 if data:
                     export = messagebox.askyesno("Exportar", "Exportar agora?", parent=self)
@@ -49,7 +49,7 @@ class History(BaseWindow):
 
 
                 else:
-                    messagebox.showerror("Erro", f"SYSPL #{_id} - no row for \"SysFazendaHistory\"", parent=self)
+                    messagebox.showerror("Erro", f"SYSDIVIDA #{_id} - no row for \"sysdividahistory\"", parent=self)
 
 
 
@@ -63,10 +63,10 @@ class History(BaseWindow):
 
         with Session(config.DB_ENGINE) as session:
 
-            historical = session.query(SysFazendaHistory).filter(SysFazendaHistory.project_id==self.project_id).all()
+            historical = session.query(SysDividaHistory).filter(SysDividaHistory.project_id==self.project_id).all()
 
             for h in historical:
-                tree.insert('', customtkinter.END, values=(h.id, "SYSFAZENDA", h.time_created))
+                tree.insert('', customtkinter.END, values=(h.id, "SYSDIVIDA", h.time_created))
 
         tree.bind("<Double-Button-1>", item_selected)
 

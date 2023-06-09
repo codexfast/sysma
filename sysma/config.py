@@ -9,10 +9,12 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 # Load models tables
-from models.automobiles import Automobiles
-from models.projects import Projects
+from models.automobiles import *
+from models.projects import *
+
 from modules.syspl.models.syspl import *
 from modules.sysfazenda.models.sysfazenda import *
+from modules.sysdivida.models.sysdivida import *
 
 from PIL import Image
 

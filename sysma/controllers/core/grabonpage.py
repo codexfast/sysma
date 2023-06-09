@@ -13,6 +13,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 
 from controllers.core.recaptcha import ReCaptcha
+from controllers.functionalities.tools import selecionar_contas
 
 def custom_to_float(_str: typing.AnyStr) -> float:
     _ = _str.replace('.', '')
@@ -159,6 +160,361 @@ class Multas(GrabOnPage):
         self.outras_multas = round(municipal + convenio + der, ndigits=2)
 
 @dataclasses.dataclass
+class MultasDetalhadas(GrabOnPage):
+
+
+    detran: float = dataclasses.field(default_factory=float)
+    renainf: float = dataclasses.field(default_factory=float)
+    outras_multas: float = dataclasses.field(default_factory=float)
+    detalhamento: typing.List[typing.Dict] = dataclasses.field(default_factory=list)
+
+
+    def __post_init__(self):
+        default = 0.00
+        _ = self.extract_float_from_table(self.driver.find_element(By.ID, "conteudoPaginaPlaceHolder_tbMultaResumo"))
+        
+        self.detran = _.get('DETRAN', default)
+        self.renainf= _.get('RENAINF', default)
+        
+        municipal = _.get('MUNICIPAL', default)
+        convenio = _.get('CONVENIO', default)
+        der = _.get('D.E.R.', default)
+
+        self.outras_multas = round(municipal + convenio + der, ndigits=2)
+
+        if self.has_elmt(By.ID, "conteudoPaginaPlaceHolder_btnDetalharMultas"):
+
+            # Vai a sessão de multas detalhadas
+            self.driver.find_element(By.ID, "conteudoPaginaPlaceHolder_btnDetalharMultas").click()
+
+            # Captura as multas uma a uma
+            self.detalhamento = self.grab_details_debt()
+
+            # Retorna a pagina principal dos dados
+            self.driver.back()
+
+        else: self.detalhamento = []
+
+        
+
+    def grab_details_debt(self) -> typing.List[typing.Dict]:
+        _final = []
+
+        target_child = self.driver.find_element(By.ID, "conteudoPaginaPlaceHolder_trMultaCab")
+        target = target_child.find_element(By.XPATH, "..")
+
+        rows = target.find_elements(By.TAG_NAME, "tr")
+        del rows[-1]
+
+        for i in range(0, len(rows), 5):
+
+            second_tr = rows[i+2]
+            third_tr = rows[i+3]
+            fourth_tr = rows[i+4]
+
+            value = custom_to_float(
+                third_tr.find_elements(By.TAG_NAME, "td")[5].text.replace('R$','')
+            )
+
+            _final.append(
+                {
+                    'name': fourth_tr.find_elements(By.TAG_NAME, "td")[3].text,
+                    'guia': third_tr.find_elements(By.TAG_NAME, "td")[3].text,
+                    'ait': second_tr.find_elements(By.TAG_NAME, "td")[3].text,
+                    'value': value
+                }
+            )
+        
+        return _final
+
+
+@dataclasses.dataclass
+class SFPDividas(GrabOnPage):
+    anti_captcha_key: str
+
+    balance: float
+    lote: typing.AnyStr
+
+    is_valid: bool = False
+
+    renavam:            typing.AnyStr = None # OK
+    placa:              typing.AnyStr = None # Ok
+    ipva:               typing.AnyStr = None # OK
+    divida_ativa:       typing.AnyStr = None # OK
+    multas_renainf:     typing.AnyStr = None # OK
+    multas_detran:      typing.AnyStr = None # Ok
+    outras_multas_sp:   typing.AnyStr = None # OK
+    dpvat:              typing.AnyStr = None # OK
+    taxa_licenciamento: typing.AnyStr = None # OK
+
+    data: typing.List[dict] = dataclasses.field(default_factory=list)
+
+    multas: Multas = None
+
+    def __post_init__(self):
+
+        self.is_valid = self.has_elmt(By.ID, "tituloPaginaPlaceHolder_txtDataConsulta")
+
+        if self.is_valid:
+            self.placa = self.grab_text(By.ID, "conteudoPaginaPlaceHolder_txtPlaca")
+            self.renavam = self.grab_text(By.ID, "conteudoPaginaPlaceHolder_txtRenavam")
+            self.dpvat = self.grab_text(By.XPATH, '/html/body/form/table[3]/tbody/tr/td[2]/table/tbody/tr/td[2]/div/table[22]/tbody/tr/td/table/tbody/tr[2]/td[5]', default=0.00)
+
+            # = Ipva ===
+            ipva = \
+                Ipva(self.driver)
+
+            self.ipva = ipva.ipva
+
+            # = Licenciamento ===
+            licenciamento = \
+                Licenciamento(self.driver)
+
+            self.taxa_licenciamento = licenciamento.total_licenciamento
+
+            # = Multas ===
+            self.multas = \
+                MultasDetalhadas(self.driver)
+            
+            self.multas_detran = self.multas.detran
+            self.outras_multas_sp = self.multas.outras_multas
+            self.multas_renainf = self.multas.renainf
+
+            # = Divida ativa ===
+            divida_ativa = \
+                DividaAtiva(self.driver, self.renavam, anti_captcha_key=self.anti_captcha_key)
+            
+            self.divida_ativa = divida_ativa.total
+
+            self.process_debt()
+
+    def process_debt(self) -> typing.NoReturn:
+        order = [
+            # { 'name' : 'outras_multas', 'value' : self.outras_multas_sp },
+            { 'name' : 'ipva', 'value' : self.ipva },
+            { 'name' : 'divida_ativa', 'value' : self.divida_ativa },
+
+            { 'name' : 'multas_detran', 'value' : self.multas_detran },
+            { 'name' : 'renainf', 'value' : self.multas_renainf },
+            { 'name' : 'outras_multas', 'value' : self.outras_multas_sp },
+            { 'name' : 'taxa_licenciamento', 'value' : self.taxa_licenciamento },
+        ]
+
+
+        for index, seq in enumerate(order):
+            ait = "RENAVAM"
+            guia = "RENAVAM"
+            pay_type = seq['name'].upper()
+
+
+            # se a divida estiver zerada pula o mesmo
+            if seq['value'] <= 0:
+                continue    
+
+            if (self.balance - seq['value']) < 0:
+                
+                # Paga tudo ou nada
+                if seq['name'] in ('renainf', 'ipva', 'taxa_licenciamento'):
+                    break
+                
+                elif seq['name'] in ('divida_ativa'):
+                    
+                    # subtrai o saldo
+                    self.balance -= seq['value']
+                    pay_type = "DIVIDA ATIVA"
+
+                    # Paga com total ou parcial
+                    seq['value'] += self.balance
+
+                    # break
+
+                elif(seq['name'] == "multas_detran" and seq['value'] > self.balance):
+
+                    detran = selecionar_contas(self.balance, \
+                        list(filter(lambda x: x['name']=="DETRAN", self.multas.detalhamento))
+                    )
+                    
+                    for d in detran:
+                        self.balance -= d['value']
+
+                        # self.data.append([
+                        #     self.lote,
+                        #     self.placa,
+                        #     self.renavam,
+                        #     d['value'],
+                        #     d['ait'],
+                        #     d['guia'],
+                        #     "MULTA DETRAN",
+                        # ])
+
+                        self.data.append({
+                            "lote": self.lote,
+                            "placa": self.placa,
+                            "renavam": self.renavam,
+                            "valor": d['value'],
+                            "ait": d['ait'],
+                            "guia": d['guia'],
+                            "tipo_debito": "MULTA DETRAN",
+                        })
+                        
+
+
+                    # break
+
+                elif(seq['name'] == "outras_multas" and seq['value'] > self.balance):
+
+                    der = selecionar_contas(self.balance, \
+                        list(filter(lambda x: x['name']=="D.E.R.", self.multas.detalhamento))
+                    )
+
+                    for d in der:
+                        self.balance -= d['value']
+
+                        # self.data.append([
+                        #     self.lote,
+                        #     self.placa,
+                        #     self.renavam,
+                        #     d['value'],
+                        #     d['ait'],
+                        #     d['guia'],
+                        #     "D.E.R.",
+                        # ])
+
+                        
+                        self.data.append({
+                            "lote": self.lote,
+                            "placa": self.placa,
+                            "renavam": self.renavam,
+                            "valor": d['value'],
+                            "ait": d['ait'],
+                            "guia": d['guia'],
+                            "tipo_debito": "D.E.R.",
+                        })
+
+                    municipal = selecionar_contas(self.balance, \
+                        list(filter(lambda x: x['name']=="MUNICIPAL", self.multas.detalhamento))
+                    )
+                        
+                    for m in municipal:
+                        self.balance -= m['value']
+
+                        # self.data.append([
+                        #     self.lote,
+                        #     self.placa,
+                        #     self.renavam,
+                        #     m['value'],
+                        #     m['ait'],
+                        #     m['guia'],
+                        #     "MUNICIPAL",
+                        # ])
+
+                        self.data.append({
+                            "lote": self.lote,
+                            "placa": self.placa,
+                            "renavam": self.renavam,
+                            "valor": m['value'],
+                            "ait": m['ait'],
+                            "guia": m['guia'],
+                            "tipo_debito": "MUNICIPAL",
+                        })
+
+                        
+
+                    convenio = selecionar_contas(self.balance, \
+                        list(filter(lambda x: x['name']=="CONVENIO", self.multas.detalhamento))
+                    )
+
+                    for c in convenio:
+                        self.balance -= c['value']
+
+                        # self.data.append([
+                        #     self.lote,
+                        #     self.placa,
+                        #     self.renavam,
+                        #     c['value'],
+                        #     c['ait'],
+                        #     c['guia'],
+                        #     "CONVENIO",
+                        # ])
+
+                        self.data.append({
+                            "lote": self.lote,
+                            "placa": self.placa,
+                            "renavam": self.renavam,
+                            "valor": c['value'],
+                            "ait": c['ait'],
+                            "guia": c['guia'],
+                            "tipo_debito": "CONVENIO",
+                        })
+                  
+
+
+                    # break
+
+                # caso nao tenha saldo pula a sequencia
+                if not seq['name'] in ('divida_ativa'):
+                    # self.data.append([
+                    #     self.lote,
+                    #     self.placa,
+                    #     self.renavam,
+                    #     '-',
+                    #     '-',
+                    #     '-',
+                    #     '-1',
+                    # ])
+
+                    self.data.append({
+                        "lote": self.lote,
+                        "placa": self.placa,
+                        "renavam": self.renavam,
+                        "valor": '0.00',
+                        "ait": '-',
+                        "guia": '-',
+                        "tipo_debito": '-1',
+                    })
+                    continue
+            else:
+                self.balance-=seq['value']
+
+            # renomeando
+            if seq['name'] == 'divida_ativa':
+                ait = "BOLETO"
+                guia = "BOLETO"
+
+            elif seq['name'] == 'multas_detran':
+                pay_type = "MULTA DETRAN (PAGAR TUDO)"
+
+            elif seq['name'] == 'outras_multas':
+                pay_type = "OUTRAS MULTAS SP (PAGAR TUDO)"
+            
+            elif seq['name'] == 'taxa_licenciamento':
+                pay_type = "TAXA DE LICENCIAMENTO"
+
+            # self.data.append([
+            #     self.lote,
+            #     self.placa,
+            #     self.renavam,
+            #     seq['value'],
+            #     ait,
+            #     guia,
+            #     pay_type,
+            # ])
+
+            self.data.append({
+                "lote": self.lote,
+                "placa": self.placa,
+                "renavam": self.renavam,
+                "valor": seq['value'],
+                "ait": ait,
+                "guia": guia,
+                "tipo_debito": pay_type,
+            })
+    
+    def __iter__(self) -> typing.List:
+        
+        return iter(self.data)
+
+@dataclasses.dataclass
 class SFP(GrabOnPage):
     anti_captcha_key: str
 
@@ -233,6 +589,8 @@ class DividaAtiva(GrabOnPage):
                 self.total = "COM"
 
         if self.is_valid:
+
+            
             
             # ------ Codigo feio
             
@@ -258,15 +616,15 @@ class DividaAtiva(GrabOnPage):
                     
         
 
-            self.driver.find_element(By.NAME, "consultaDebitoForm:j_id102").click()
+            self.driver.find_element(By.NAME, "consultaDebitoForm:j_id104").click()
             
             # ------- fim de codigo feio
             
             
-            """sl = WebDriverWait(self.driver, 10).until(
+            sl = WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.ID, "consultaDebitoForm:decLblTipoConsulta:opcoesPesquisa"))
             )
-            """
+            
             
             # sl = Select(sl)
             # sl.select_by_value('RENAVAM')

@@ -36,9 +36,10 @@ class DataExport:
         self.wb = Workbook()
         
         self.sheet = self.wb.active
-        self.sheet.title = "SYSPL v1"
+        self.sheet.title = "SYSMA v1"
 
         self.path = path
+        self.export_app_name = "unk"
 
         self.columns = []
         self.row_values = []
@@ -66,7 +67,7 @@ class DataExport:
 
         self.__write()
 
-        filename = format_with_date("SYSPL.v2")
+        filename = format_with_date(f"{self.export_app_name}.v2")
 
         self.wb.save(os.path.join(self.path, filename))
 

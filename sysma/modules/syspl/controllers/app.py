@@ -29,6 +29,7 @@ PATIO_LOGIN = "https://www.sispl.sp.gov.br/maximo/webclient/login/login.jsp"
 PATIO_CONSULTA = "https://www.sispl.sp.gov.br/maximo/ui/?event=loadapp&value=ms_rptauc01&uisessionid=219&_tt=c8l2njvugsgco33oknltqkj2jf"
 
 
+
 def do_export(path, histoty_id):
 
     try:
@@ -38,6 +39,8 @@ def do_export(path, histoty_id):
             
             with DataExport(path) as data:
                 
+                data.export_app_name = "SYSPL"
+
                 data.set_columns([
                     'PLACA',
                     'NOME FINANCEIRA',
@@ -469,13 +472,20 @@ class Syspl(threading.Thread):
         else:
 
             with Session(config.DB_ENGINE) as session:
+                
+
                 failed = \
                     session.query(SysplData).filter(
                         SysplData.history_id == self.history_id, SysplData.failed == True
                     ).all()
                 
+                failed = failed if failed else []
+                
                 if not len(failed):
                     return None
+
+                self.close_add_window()
+                self.relogin()
 
                 self.pb_step.set(0)
                 self.lb_perc.set(f"0%")

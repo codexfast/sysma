@@ -1,14 +1,19 @@
 from controllers.core.web import create_webdriver
 from controllers.core.web import webdriver
 from controllers.core.recaptcha import ReCaptcha
+from controllers.core.grabonpage import SFP, SFPDividas
+from controllers.functionalities.tools import *
 from controllers.core.xlsx import DataExport
 
-from controllers.core.grabonpage import SFP
-from controllers.functionalities.tools import *
 
-from ..models.sysfazenda import SysFazendalConfig, SysFazendaData
+from ..models.sysdivida import *
+from modules.sysfazenda.models.sysfazenda import SysFazendalConfig
+from modules.syspl.models.syspl import SysplData
 
 from sqlalchemy.orm import Session
+from controllers.core.xlsx import Xlsx
+from controllers.functionalities.tools import compare
+
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -23,44 +28,65 @@ import time
 import threading
 import dataclasses
 import config
-
+import typing
+import traceback
 
 FAZENDA_CONSULTA = "https://www.ipva.fazenda.sp.gov.br/ipvanet_consulta/Consulta.aspx"
+
+
+class LoadDividaAssets(Xlsx):
+    def __init__(self, xlsx_file):
+        super().__init__(xlsx_file)
+
+        # Recursos carregados da planilha
+        self.resources = list(self.ws.iter_rows(values_only=True))
+
+    def _verify(self, asset: tuple) -> bool:
+        lote, placa, renavam, valor = asset
+
+        if not None in (lote, placa, renavam, valor) :
+            return True
+        
+        return False
+
+    def get(self) -> list:
+        try:
+            return list(filter(self._verify, self.resources))
+        except ValueError:
+            return []
 
 def do_export(path, histoty_id):
     try:
         
         with Session(config.DB_ENGINE) as session:
-            sdata: list[SysFazendaData] = session.query(SysFazendaData).filter(SysFazendaData.history_id==histoty_id).all()
+            sdata: typing.List[SysDividaData] = \
+                session.query(SysDividaData)\
+                    .filter(SysDividaData.history_id == histoty_id).order_by(SysDividaData.lote).all()
             
             with DataExport(path) as data:
-                data.export_app_name = "SYSFAZENDA"
+                data.export_app_name = "SYSDIVIDA"
                 
                 data.set_columns([
+                    'LOTE',
                     'PLACA',
                     'RENAVAM',
-                    'MULTA RENAINF',
-                    'IPVA',
-                    'DÍVIDA ATIVA',
-                    'MULTAS DETRAN',
-                    'OUTRAS MULTAS',
-                    'DPVAT',
-                    'TAXA LICENCIAMENTO',
+                    'VALOR',
+                    'AIT',
+                    'GUIA',
+                    'DEBITO',
                 ])
 
                 for s in sdata:
 
 
                     data.insert_row([
+                    s.lote,
                     s.placa,
                     s.renavam,
-                    s.multa_renainf,
-                    s.ipva,
-                    s.divida_ativa,
-                    s.multas_detran,
-                    s.outras_multas,
-                    s.dpvat,
-                    s.taxa_licenciamento,
+                    s.valor,
+                    s.ait,
+                    s.guia,
+                    s.debito,
                     
                 ])
 
@@ -69,8 +95,23 @@ def do_export(path, histoty_id):
     except:
         return False
 
+def check_input_dividas(filepath, syspl_data: SysplData):
 
-class SysFazenda(threading.Thread):
+    raw_ = LoadDividaAssets(filepath).get()
+
+    if not len(raw_):
+        return False
+
+    del raw_[0]
+
+    assets_divida = [(a[1], a[2],)for a in raw_]
+    syspl_data = [(s.placa, s.renavam) for s in syspl_data]
+
+    return raw_ if compare(assets_divida, syspl_data) else False
+
+
+
+class SysDivida(threading.Thread):
 
     def __init__(
             self,
@@ -116,27 +157,29 @@ class SysFazenda(threading.Thread):
     def run(self):
         self.process()
     
-    def record_auto(self, placa: str, renavam: str, auto: SFP = None):
+    def record_divida(self, placa: str, renavam: str, dividas: typing.List[dict] = None):
         with Session(config.DB_ENGINE) as session, session.begin():
 
-            if auto:
-                session.add(
-                    SysFazendaData(
-                        history_id=self.history_id,
-                        placa=placa, 
-                        renavam=renavam,
-                        ipva=auto.ipva,
-                        divida_ativa=auto.divida_ativa,
-                        multa_renainf=auto.multas_renainf,
-                        multas_detran=auto.multas_detran,
-                        outras_multas=auto.outras_multas_sp,
-                        dpvat=auto.dpvat,
-                        taxa_licenciamento=auto.taxa_licenciamento,
+            if dividas:
+
+                print(dividas)
+                for divida in dividas:
+
+                    session.add(
+                        SysDividaData(
+                            history_id=self.history_id,
+                            placa=placa, 
+                            renavam=renavam,
+                            lote=divida.get("lote"),
+                            valor=divida.get("valor"),
+                            ait=divida.get("ait"),
+                            guia=divida.get("guia"),
+                            debito=divida.get("tipo_debito"),
+                        )
                     )
-                )
             else:
                 session.add(
-                    SysFazendaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id)
+                    SysDividaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id)
                 )
 
 
@@ -166,16 +209,17 @@ class SysFazenda(threading.Thread):
             consulta_btn.click()
             
             try:
-                sfp = SFP(self.driver, anti_captcha_key=self.anti_captcha_key)
+                sfp = SFPDividas(self.driver, anti_captcha_key=self.anti_captcha_key, balance=9000.10, lote=1)
 
                 if sfp.is_valid:
-                    return sfp
+                    return sfp.data
 
             except Exception as e:
                 print("err", e)
+                print(traceback.format_exc())
+
                 self.lb_step.set("Um problema, tentando resolver.")
         
-
         return None
     
     def process(self):
@@ -204,9 +248,9 @@ class SysFazenda(threading.Thread):
                     _auto = self.load_by_renavam_placa(placa, renavam)
 
                     if _auto:
-                        self.record_auto(placa=auto.placa, renavam=auto.renavam, auto=_auto)
+                        self.record_divida(placa=auto.placa, renavam=auto.renavam, dividas=_auto)
                     else:
-                        if i != 5:
+                        if i != 4:
                             self.lb_step.set(
                                 f"Placa/Renavam ({auto.placa}/{auto.renavam}) sem dados, tentando novamente [{i}*][{c} - {len(self.resources)}]"
                             )
@@ -214,12 +258,12 @@ class SysFazenda(threading.Thread):
                             continue
 
                         # caso termine as tentativas, grave com falha no banco
-                        self.record_auto(placa=auto.placa, renavam=auto.placa)
+                        self.record_divida(placa=auto.placa, renavam=auto.placa)
                     break
                 
                 except Exception as e:
                     self.lb_step.set("Erro critico!!!")
-                    print(e)
+                    print(traceback.format_exc())
                     continue
 
             # se carro for concluido atualiza barra de progresso

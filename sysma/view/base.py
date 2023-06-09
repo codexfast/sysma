@@ -1,4 +1,5 @@
 import customtkinter
+import config
 
 class BaseWindow(customtkinter.CTkToplevel):
     def __init__(self, master, *args, **kwargs):
@@ -10,6 +11,21 @@ class BaseWindow(customtkinter.CTkToplevel):
         
         self.master = master
         self.master.withdraw()
+
+        self.DEFAULT_OPEN_XLSX = {
+            "parent":self,
+            "initialdir":config.DOCUMENTS_FOLDER,
+            "title":"Selecione uma planilha",
+            "filetypes":(
+                ("Arquivo Excel", "*.xlsx*"),
+            ),
+        }
+
+        self.DEFAULT_SELECT_FOLDER = {
+            "parent":self,
+            "initialdir":config.DOCUMENTS_FOLDER,
+            "title":"Selecione uma pasta",
+        }
 
     def draw_title(self, title: str):
         title_label = customtkinter.CTkLabel(
