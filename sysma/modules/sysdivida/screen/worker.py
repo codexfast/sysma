@@ -11,7 +11,7 @@ import config
 
 class Worker(BaseWindow):
 
-    def __init__(self, master, project_id: int, syspl_data: list, *args, **kwargs):
+    def __init__(self, master, project_id: int, syspl_data: list, sysassets, *args, **kwargs):
         
         super().__init__(master, *args, **kwargs)
 
@@ -21,6 +21,7 @@ class Worker(BaseWindow):
 
         self.project_id = project_id
         self.syspl_data = syspl_data
+        self.sysassets = sysassets
 
         self.title("SysDividas")
         self.resizable(False, False)
@@ -112,7 +113,8 @@ class Worker(BaseWindow):
             lb_perc=self.lb_perc_var,
             lb_step=self.lb_step_var,
             project_id=self.project_id,
-            syspl_data=self.syspl_data
+            syspl_data=self.syspl_data,
+            sysassets=self.sysassets,
         )
 
         

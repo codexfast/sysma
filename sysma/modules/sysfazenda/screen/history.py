@@ -49,7 +49,7 @@ class History(BaseWindow):
 
 
                 else:
-                    messagebox.showerror("Erro", f"SYSPL #{_id} - no row for \"SysFazendaHistory\"", parent=self)
+                    messagebox.showerror("Erro", f"SYSFAZENDA #{_id} - no row for \"SysFazendaHistory\"", parent=self)
 
 
 

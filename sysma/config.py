@@ -30,7 +30,7 @@ Base.metadata.create_all(DB_ENGINE)
 
 # Paths
 IMAGE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
-DOCUMENTS_FOLDER = os.path.join(os.path.expandvars('%USERPROFILE%'),'Documents')
+DOCUMENTS_FOLDER = os.path.join(os.path.expandvars('%USERPROFILE%'),'Documents', 'Sysma')
 
 @dataclasses.dataclass
 class Images:

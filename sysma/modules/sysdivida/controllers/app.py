@@ -124,6 +124,7 @@ class SysDivida(threading.Thread):
             pb_step: customtkinter.CTkProgressBar, 
             lb_step: customtkinter.CTkLabel, 
             lb_perc: customtkinter.CTkLabel,
+            sysassets: list
         ):
 
         threading.Thread.__init__(self)
@@ -139,12 +140,15 @@ class SysDivida(threading.Thread):
         self.history_id = history_id
         self.project_id = project_id
 
+
         self.driver: webdriver = create_webdriver()
 
         self.lock_selenium = False
 
         self.verify_title = lambda x: x.lower() == self.driver.title.strip().lower()
         self.anti_captcha_key = self.get_anti_captcha_key()
+
+        self.assets = sysassets
 
     @staticmethod
     def get_anti_captcha_key() -> str:
@@ -209,10 +213,14 @@ class SysDivida(threading.Thread):
             consulta_btn.click()
             
             try:
-                sfp = SFPDividas(self.driver, anti_captcha_key=self.anti_captcha_key, balance=9000.10, lote=1)
+                
+                for lote, _placa, _renavam, saldo in self.assets:
+                    if _placa.upper() == placa.upper():
 
-                if sfp.is_valid:
-                    return sfp.data
+                        sfp = SFPDividas(self.driver, anti_captcha_key=self.anti_captcha_key, balance=saldo, lote=lote)
+
+                        if sfp.is_valid:
+                            return sfp.data
 
             except Exception as e:
                 print("err", e)

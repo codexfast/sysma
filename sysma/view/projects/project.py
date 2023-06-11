@@ -421,10 +421,11 @@ class ProjectManagerWindow(BaseWindow):
                     if file_path:
 
                         # checa se é valido a planilha preenchida
-                        assets = check_input_dividas(file_path, syspl_data)
+                        sysassets = check_input_dividas(file_path, syspl_data)
+
                         
-                        if assets:
-                            BaseWindow.open_top_level(self, self.toplevel_window, SysDivida, project_id=self.data.id, syspl_data=syspl_data)
+                        if sysassets:
+                            BaseWindow.open_top_level(self, self.toplevel_window, SysDivida, project_id=self.data.id, syspl_data=syspl_data, sysassets=sysassets)
 
                         else:
                             messagebox.showerror("ValueError", "Há dados que nao conferem", parent=self)
