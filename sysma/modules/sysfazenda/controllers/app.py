@@ -115,6 +115,8 @@ class SysFazenda(threading.Thread):
     
     def run(self):
         self.process()
+        self.driver.quit()
+
     
     def record_auto(self, placa: str, renavam: str, auto: SFP = None):
         with Session(config.DB_ENGINE) as session, session.begin():

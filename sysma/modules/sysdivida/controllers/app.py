@@ -160,6 +160,7 @@ class SysDivida(threading.Thread):
     
     def run(self):
         self.process()
+        self.driver.quit()
     
     def record_divida(self, placa: str, renavam: str, dividas: typing.List[dict] = None):
         with Session(config.DB_ENGINE) as session, session.begin():
@@ -217,6 +218,10 @@ class SysDivida(threading.Thread):
                 for lote, _placa, _renavam, saldo in self.assets:
                     if _placa.upper() == placa.upper():
 
+                        # aguarda até tenha o campo renavam em tela
+                        wait(self.driver, 10).until(
+                            EC.presence_of_element_located((By.ID, "conteudoPaginaPlaceHolder_Label60"))
+                        )
                         sfp = SFPDividas(self.driver, anti_captcha_key=self.anti_captcha_key, balance=saldo, lote=lote)
 
                         if sfp.is_valid:

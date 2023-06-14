@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship
 
 from config import Base
 
+import datetime
 
 class SysplHistory(Base):
     __tablename__ = "sysplhistory"
@@ -17,7 +18,8 @@ class SysplHistory(Base):
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
 
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
+    time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)
 
     project = relationship("Projects")
 
@@ -58,8 +60,8 @@ class SysplData(Base):
 
     failed = Column(Boolean, default=False)
     
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
-    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+    time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)
 
     sysplhistory = relationship("SysplHistory")
 
@@ -76,3 +78,5 @@ class SysplLogin(Base):
     username = Column(String)
     password = Column(String)
 
+    time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)

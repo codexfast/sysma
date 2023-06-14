@@ -136,7 +136,7 @@ class Syspl(threading.Thread):
 
     def run(self):
         self.process()
-    
+        self.driver.quit()
 
     def do_login(self):
 
@@ -186,11 +186,22 @@ class Syspl(threading.Thread):
         
     def close_add_window(self):
         try:
-            self.driver.switch_to.window(self.driver.window_handles[1])
-            self.driver.close()
-            self.driver.switch_to.window(self.driver.window_handles[0])
+
+            for count, tab in enumerate(self.driver.window_handles):
+                if count == 0:
+                    continue
+
+                self.driver.switch_to.window(tab)
+                self.driver.close()
+                self.driver.switch_to.window(self.driver.window_handles[0])
+
+
+            # self.driver.switch_to.window(self.driver.window_handles[1])
+            # self.driver.close()
+            # self.driver.switch_to.window(self.driver.window_handles[0])
 
         except Exception as err:
+            print(err)
             # caso nao tenha conseguido fechar a guia adicional
             pass
 
@@ -199,11 +210,6 @@ class Syspl(threading.Thread):
 
         self.driver.get(PATIO_CONSULTA)
 
-        
-        # se não estiver na pagina correta
-        if not self.verify_title("Consulta de Leiloeiros"):
-            return False
-        
 
         try:
 
@@ -214,6 +220,7 @@ class Syspl(threading.Thread):
 
         except NoSuchElementException as err:
             print(err)
+            return False
 
         # time.sleep(1.5)
 
@@ -409,7 +416,7 @@ class Syspl(threading.Thread):
         if not self.do_login():
             showerror("Erro no login", "Usuário ou senhas incorretas", parent=self.view)
 
-            self.driver.close()
+            self.driver.quit()
             self.view._destroy()
 
 
@@ -534,6 +541,7 @@ class Syspl(threading.Thread):
                     
                         except Exception as e:
                             self.lb_step.set("Erro critico!!!")
+
                             continue
                     
                     # se carro for concluido atualiza barra de progresso

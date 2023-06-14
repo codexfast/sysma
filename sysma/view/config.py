@@ -2,6 +2,7 @@
 from sqlalchemy.orm import Session
 from tkinter import messagebox
 
+from models.sys import GeneralSettings
 from modules.syspl.models.syspl import SysplLogin
 from modules.sysfazenda.models.sysfazenda import SysFazendalConfig
 from view.base import BaseWindow, BaseForm
@@ -17,7 +18,7 @@ class Configs(BaseWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.center(500,421)
+        self.center(500,450)
         self.configure(fg_color=("#fff", "#333"))
         self.resizable(False, False)
         # self.iconbitmap()
@@ -28,6 +29,7 @@ class Configs(BaseWindow):
         self.user_sispl_var = customtkinter.StringVar(value=None)
         self.password_sispl_var = customtkinter.StringVar(value=None)
         self.key_sysfazenda_var = customtkinter.StringVar(value=None)
+        self.headless_mode_var = customtkinter.StringVar(value="checked")
 
         self.load_config()
         self.add_widgets()
@@ -72,7 +74,8 @@ class Configs(BaseWindow):
             command=self.set_config
         )
 
-        btn_save.place(x=355, y=351)
+
+        btn_save.place(x=355, y=380)
 
         # sispl place
         lb_sispl.place(x=40, y=88)
@@ -89,6 +92,16 @@ class Configs(BaseWindow):
         ###
 
         # Config options
+        headless_check = customtkinter.CTkCheckBox(
+            self, 
+            text="Headless Mode", 
+            onvalue="checked", 
+            offvalue="notchecked", 
+            variable=self.headless_mode_var
+        )
+
+        headless_check.place(x=40, y=271)
+
 		# ... nothing here
         
         # lb_no_config = customtkinter.CTkLabel(
@@ -107,6 +120,7 @@ class Configs(BaseWindow):
 
             login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
             config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
+            general:GeneralSettings = session.query(GeneralSettings).one_or_none()
 
             if login_syspl:
                 self.user_sispl_var.set(login_syspl.username)
@@ -115,6 +129,13 @@ class Configs(BaseWindow):
             if config_sysfazenda:
                 self.key_sysfazenda_var.set(config_sysfazenda.anti_captcha_key)
 
+            if general:
+                self.headless_mode_var.set("checked" if general.headless_mode else "notchecked")
+
+            else:
+                session.add(GeneralSettings(headless_mode=True))
+                session.commit()
+
 
     def set_config(self):
 
@@ -122,12 +143,15 @@ class Configs(BaseWindow):
 
             login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
             config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
+            config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
+            general:GeneralSettings = session.query(GeneralSettings).one_or_none()
+
 
             if config_sysfazenda:
                 config_sysfazenda.anti_captcha_key = self.key_sysfazenda_var.get()
 
             else:
-                # caso não exista dados para login, cria no banco
+                # caso não exista dados para key, cria no banco
                 session.add(SysFazendalConfig(anti_captcha_key=self.key_sysfazenda_var.get()))
 
             if login_syspl:
@@ -137,6 +161,10 @@ class Configs(BaseWindow):
             else:
                 # caso não exista dados para login, cria no banco
                 session.add(SysplLogin(username=self.user_sispl_var.get(), password=self.password_sispl_var.get()))
+
+            if general:
+                general.headless_mode = True if self.headless_mode_var.get() == "checked" else False
+            
 
 
         messagebox.showinfo("Sucesso!", "Todas suas configurações foram salvas", parent=self)

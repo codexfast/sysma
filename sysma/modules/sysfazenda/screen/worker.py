@@ -85,6 +85,7 @@ class Worker(BaseWindow):
 
     def _destroy(self):
         self.worker.lock_selenium = True
+        
         return super()._destroy()
 
     def create_history(self) -> int:

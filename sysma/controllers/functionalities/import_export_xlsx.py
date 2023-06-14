@@ -15,8 +15,9 @@ def do_import(parent, project_id, filename):
             messagebox.showerror("XLSX", "Erro ao ler planilha, ou versão não suportada!", parent=parent)
             return False;
 
-        if loaded_assets.invalid_resources:
-            report = messagebox.askyesno("Erro na planilha encontrado", "Deseja gerar planilha com os erros?", icon="warning", parent=parent)
+        # Disable
+        # if loaded_assets.invalid_resources:
+        #     report = messagebox.askyesno("Erro na planilha encontrado", "Deseja gerar planilha com os erros?", icon="warning", parent=parent)
 
             # if report: faça nova planilha de erros dos itens
 

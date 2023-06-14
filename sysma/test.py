@@ -45,13 +45,16 @@
 #     print(check_input_dividas(r"C:\Users\Gilberto\Desktop\08-06-2023.15-29-54.DVIDAS_PREENCHIMENTO.v2.xlsx", syspl_data))
 
 
-a = [
-    (1, "ASD4324", "123RA314", 19992.34),
-    (2, "FGH4324", "756RA314", 7567),
-]
+# a = [
+#     (1, "ASD4324", "123RA314", 19992.34),
+#     (2, "FGH4324", "756RA314", 7567),
+# ]
 
-for lote, placa, renavam, saldo in a:
+# for lote, placa, renavam, saldo in a:
     
-    if placa.upper() == "ASD4324":
-        print(saldo)
+#     if placa.upper() == "ASD4324":
+#         print(saldo)
 
+import datetime
+
+print(datetime.datetime.now())

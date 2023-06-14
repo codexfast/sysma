@@ -583,6 +583,9 @@ class DividaAtiva(GrabOnPage):
 
             if not ignore_divida_ativa:
                 self.driver.get("https://www.dividaativa.pge.sp.gov.br/sc/pages/consultas/consultarDebito.jsf")
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.ID, "consultaDebitoForm:consulta"))
+                )
                 self.is_valid = self.has_elmt(By.ID, "consultaDebitoForm:consulta")
             
             else:
@@ -594,7 +597,7 @@ class DividaAtiva(GrabOnPage):
             
             # ------ Codigo feio
             
-            sl = WebDriverWait(self.driver, 10).until(
+            sl = WebDriverWait(self.driver, 20).until(
                     EC.presence_of_element_located((By.ID, "consultaDebitoForm:decLblTipoConsulta:opcoesPesquisa"))
                 )
             
@@ -603,7 +606,7 @@ class DividaAtiva(GrabOnPage):
             # sl = Select(self.driver.find_element(By.ID,"consultaDebitoForm:decLblTipoConsulta:opcoesPesquisa"))
             sl.select_by_value('RENAVAM')
             
-            element = WebDriverWait(self.driver, 10).until(
+            element = WebDriverWait(self.driver, 20).until(
                 EC.presence_of_element_located((By.ID, "consultaDebitoForm:decTxtTipoConsulta:cdaEtiqueta"))
             )
             

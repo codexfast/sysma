@@ -1,6 +1,8 @@
 from sqlalchemy.sql import func
 from sqlalchemy import Column, String, Integer, DateTime
 
+import datetime
+
 
 from config import Base
 
@@ -19,8 +21,8 @@ class Projects(Base):
     cidade = Column(String)
     descricao = Column(String)
 
-    time_created = Column(DateTime(timezone=True), server_default=func.now())
-    time_updated = Column(DateTime(timezone=True), onupdate=func.now())
+    time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
+    time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)
 
     def __repr__(self):
         return f"<{self.__tablename__.capitalize()}>"

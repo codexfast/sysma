@@ -11,6 +11,7 @@ Base = declarative_base()
 # Load models tables
 from models.automobiles import *
 from models.projects import *
+from models.sys import *
 
 from modules.syspl.models.syspl import *
 from modules.sysfazenda.models.sysfazenda import *
