@@ -61,7 +61,7 @@ class LoadSysmaResource(Xlsx):
 
         return (valid, invalid)
 
-    def record_resources(self, project_id: int):
+    def record_resources(self, project_instace):
 
         # assert len(self.valid_resources) > 0, "Não há recursos para gravar"
 
@@ -73,7 +73,8 @@ class LoadSysmaResource(Xlsx):
 
             # inserido novos dados validos
             autos = [Automobiles(
-                project_id=project_id,
+                project_id=project_instace.id,
+                parent_signature=project_instace.signature,
                 placa=plate_convert(placa) if is_mercosul(placa) else placa,
                 placa_mercosul=plate_convert(placa) if not is_mercosul(placa) else placa,
                 renavam="x",

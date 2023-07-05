@@ -165,6 +165,8 @@ class SysDivida(threading.Thread):
     def record_divida(self, placa: str, renavam: str, dividas: typing.List[dict] = None):
         with Session(config.DB_ENGINE) as session, session.begin():
 
+            h = session.query(SysDividaHistory).filter(SysDividaHistory.id == self.history_id).one_or_none()
+
             if dividas:
 
                 print(dividas)
@@ -173,6 +175,7 @@ class SysDivida(threading.Thread):
                     session.add(
                         SysDividaData(
                             history_id=self.history_id,
+                            parent_signature=h.signature,
                             placa=placa, 
                             renavam=renavam,
                             lote=divida.get("lote"),
@@ -184,7 +187,7 @@ class SysDivida(threading.Thread):
                     )
             else:
                 session.add(
-                    SysDividaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id)
+                    SysDividaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id, parent_signature=h.signature)
                 )
 
 

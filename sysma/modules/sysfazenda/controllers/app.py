@@ -6,7 +6,7 @@ from controllers.core.xlsx import DataExport
 from controllers.core.grabonpage import SFP
 from controllers.functionalities.tools import *
 
-from ..models.sysfazenda import SysFazendalConfig, SysFazendaData
+from ..models.sysfazenda import SysFazendalConfig, SysFazendaData, SysFazendaHistory
 
 from sqlalchemy.orm import Session
 
@@ -121,10 +121,13 @@ class SysFazenda(threading.Thread):
     def record_auto(self, placa: str, renavam: str, auto: SFP = None):
         with Session(config.DB_ENGINE) as session, session.begin():
 
+            h = session.query(SysFazendaHistory).filter(SysFazendaHistory.id == self.history_id).one_or_none()
+
             if auto:
                 session.add(
                     SysFazendaData(
                         history_id=self.history_id,
+                        parent_signature=h.signature,
                         placa=placa, 
                         renavam=renavam,
                         ipva=auto.ipva,
@@ -138,7 +141,7 @@ class SysFazenda(threading.Thread):
                 )
             else:
                 session.add(
-                    SysFazendaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id)
+                    SysFazendaData(failed=True, placa=placa, renavam=renavam, history_id=self.history_id, parent_signature=h.signature)
                 )
 
 

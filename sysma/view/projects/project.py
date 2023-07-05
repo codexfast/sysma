@@ -150,7 +150,7 @@ class NewProjectWindow(BaseWindow):
                     # else:
                     #     session.commit()
 
-                    r = do_import(filename=path, project_id=p.id, parent=self)
+                    r = do_import(filename=path, project_instace=p, parent=self)
 
 
                     showinfo(parent=self, title="Projeto", message="Projeto criado com sucesso!")

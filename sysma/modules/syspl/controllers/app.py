@@ -4,7 +4,7 @@ from controllers.data import Resources
 from controllers.core.xlsx import DataExport
 from controllers.functionalities.tools import *
 
-from ..models.syspl import SysplData
+from ..models.syspl import SysplData, SysplHistory
 from ..models.syspl import SysplLogin
 from models.automobiles import Automobiles
 
@@ -137,6 +137,10 @@ class Syspl(threading.Thread):
     def run(self):
         self.process()
         self.driver.quit()
+
+    def reopen_browser(self):
+        self.driver.quit()
+        self.driver = create_webdriver()
 
     def do_login(self):
 
@@ -369,10 +373,13 @@ class Syspl(threading.Thread):
                 )
             ):
                 
+                h =session.query(SysplHistory).filter(SysplHistory.id == self.history_id).one_or_none()
+                
                 self.update_renavam_chassi(session, placa, auto.get("dados_veiculo_renavam"), auto.get("dados_veiculo_chassi"))
 
                 session.add(SysplData(
                     history_id=self.history_id,
+                    parent_signature=h.signature,
                     placa=placa,
                     renavam=auto.get("dados_veiculo_renavam"),
                     chassi=auto.get("dados_veiculo_chassi"),
@@ -403,11 +410,15 @@ class Syspl(threading.Thread):
             else:
                 session.add(SysplData(
                     history_id=self.history_id,
+                    parent_signature=h.signature,
                     placa=placa if not placa is None else "xxxxxxx",
                     failed=True
                 ))
 
     def process(self):
+        reopen_in = 10
+
+        
         self.pb_step.set(0)
 
         iter_ = 1 / len(self.resources)
@@ -472,6 +483,12 @@ class Syspl(threading.Thread):
             except:
                 self.driver.quit()
                 break
+            
+            if c % reopen_in == 0:
+                # se multiplo de 10 faça:
+
+                self.reopen_browser()
+                self.do_login()
             
             # sempre no final
             self.view.update()
@@ -544,6 +561,12 @@ class Syspl(threading.Thread):
 
                             continue
                     
+                    if index % reopen_in == 0:
+                        # se multiplo de 10 faça:
+
+                        self.reopen_browser()
+                        self.do_login()
+
                     # se carro for concluido atualiza barra de progresso
                     try:
                         self.lb_perc.set(f"{percent}%")

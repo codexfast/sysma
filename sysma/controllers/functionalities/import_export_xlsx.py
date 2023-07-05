@@ -5,7 +5,7 @@ from tkinter import messagebox
 from controllers.core.sysmas_resource import LoadSysmaResource 
 
 
-def do_import(parent, project_id, filename):
+def do_import(parent, project_instace, filename):
     if filename:
 
         try: 
@@ -39,7 +39,7 @@ def do_import(parent, project_id, filename):
             # else:
                 # loaded_assets.record_resources()
             
-            loaded_assets.record_resources(project_id)
+            loaded_assets.record_resources(project_instace)
 
             messagebox.showinfo("Sucesso", "Dados importados com sucesso!", parent=parent)
 

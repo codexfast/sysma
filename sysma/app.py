@@ -13,7 +13,7 @@ class App(customtkinter.CTk):
         # config windows
         self.title('Sysma')
 
-        width = 600
+        width = 740
         height = 450
 
         screen_width = self.winfo_screenwidth()  # Width of the screen

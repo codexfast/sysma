@@ -1,6 +1,7 @@
 from view.base import BaseWindow
 from ..controllers.app import SysFazenda
 from ..models.sysfazenda import SysFazendaHistory
+from models.projects import Projects
 
 from sqlalchemy.orm import Session
 
@@ -91,8 +92,10 @@ class Worker(BaseWindow):
     def create_history(self) -> int:
 
         with Session(config.DB_ENGINE) as session:
+            p = session.query(Projects).filter(Projects.id == self.project_id).one_or_none()
+
             
-            history = SysFazendaHistory(project_id=self.project_id)
+            history = SysFazendaHistory(project_id=self.project_id, parent_signature=p.signature)
 
             session.add(history)
             

@@ -89,6 +89,12 @@ class Images:
         size=(96,126)   
     )
 
+    UPSTREAM_DB = customtkinter.CTkImage(
+        light_image=Image.open(os.path.join(IMAGE_PATH, 'upstream_db.png')), 
+        dark_image=Image.open(os.path.join(IMAGE_PATH, 'upstream_db.png')), 
+        size=(96,126)   
+    )
+
     PROJECTS = customtkinter.CTkImage(
         light_image=Image.open(os.path.join(IMAGE_PATH, 'projects.png')), 
         dark_image=Image.open(os.path.join(IMAGE_PATH, 'projects.png')), 

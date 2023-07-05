@@ -1,6 +1,8 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy import Column, String, Integer, DateTime, Boolean
+from controllers.functionalities.tools import create_signature
+
 
 from typing import List
 
@@ -17,6 +19,8 @@ class SysplHistory(Base):
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    signature = Column(String, nullable=False, default=create_signature)
+    parent_signature = Column(String, nullable=False)
 
     time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
     time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)
@@ -30,7 +34,10 @@ class SysplData(Base):
 
     id = Column(Integer, primary_key=True)
     history_id = Column(Integer, ForeignKey("sysplhistory.id"), nullable=False)
+    signature = Column(String, nullable=False, default=create_signature)
+    parent_signature = Column(String, nullable=False)
     
+
     placa = Column(String, default=None)
     renavam = Column(String, default=None)
     chassi = Column(String, default=None)

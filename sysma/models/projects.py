@@ -1,16 +1,17 @@
 from sqlalchemy.sql import func
 from sqlalchemy import Column, String, Integer, DateTime
+from controllers.functionalities.tools import create_signature
 
 import datetime
 
 
 from config import Base
 
-
 class Projects(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True)
+    signature = Column(String, nullable=False, default=create_signature)
     name = Column(String, nullable=False)
     leiloeiro = Column(String, nullable=False)
     date_start = Column(DateTime(timezone=True), nullable=False)
@@ -20,6 +21,7 @@ class Projects(Base):
     endereco = Column(String)
     cidade = Column(String)
     descricao = Column(String)
+
 
     time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
     time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)

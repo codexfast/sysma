@@ -1,6 +1,7 @@
 from view.base import BaseWindow
 from ..controllers.app import Syspl
 from ..models.syspl import SysplHistory
+from models.projects import Projects
 
 from sqlalchemy.orm import Session
 
@@ -90,8 +91,10 @@ class Worker(BaseWindow):
     def create_history(self) -> int:
 
         with Session(config.DB_ENGINE) as session:
+
+            p = session.query(Projects).filter(Projects.id == self.project_id).one_or_none()
             
-            history = SysplHistory(project_id=self.project_id)
+            history = SysplHistory(project_id=self.project_id, parent_signature=p.signature)
 
             session.add(history)
             

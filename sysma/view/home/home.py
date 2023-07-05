@@ -2,7 +2,9 @@
 from view.projects.project import NewProjectWindow, ProjectsWindow
 from view.config import Configs as ConfigWindow
 from view.base import BaseWindow
+from upstream_db import UpstreamDatabase
 
+from tkinter import messagebox
 
 # Modules viwers
 # from modules.syspl.view import View as SysplView
@@ -83,6 +85,20 @@ class HomeScreen:
             )
         )
 
+        upstream_db = customtkinter.CTkButton(
+            sub_frame, 
+            text=None, 
+            image=config.Images.UPSTREAM_DB,
+            fg_color="transparent",
+            bg_color="transparent",
+            # hover=None,
+            hover_color="gray70",
+            width=96,
+            height=99,
+            corner_radius=0,
+            command=self.do_upstream
+        )
+
         dashboard_btn = customtkinter.CTkButton(
             sub_frame, 
             text=None, 
@@ -115,7 +131,8 @@ class HomeScreen:
 
         new_project_btn.grid(**self.button_pad, row=0, column=0)
         projects_btn.grid(**self.button_pad, row=0, column=1)
-        config_btn.grid(**self.button_pad, row=0, column=2)
+        upstream_db.grid(**self.button_pad, row=0, column=2)
+        config_btn.grid(**self.button_pad, row=0, column=3)
 
 
     def create_new_project(self):
@@ -123,5 +140,37 @@ class HomeScreen:
 
     def change_configs(self):
         BaseWindow.open_top_level(self.master, self.toplevel_window, ConfigWindow)
+
+    def do_upstream(self):
+
+        upstream_win = customtkinter.CTkToplevel(self.master)
+
+        upstream_win.resizable(False, False)
+        upstream_win.grab_set()
+
+        width = 300
+        height = 80
+
+        screen_width = upstream_win.winfo_screenwidth()  # Width of the screen
+        screen_height = upstream_win.winfo_screenheight()
+
+        x = (screen_width/2) - (width/2)
+        y = (screen_height/2) - (height/2)
+
+        upstream_win.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+        upstream_win.title("Fazendo Upstream")
+        upstream_win.protocol("WM_DELETE_WINDOW", lambda: messagebox.showwarning("Aguarde", "Upstream em processo!"))
+
+        customtkinter.CTkLabel(upstream_win, text="Aguarde um momento...").place(relx=.5, rely=.5)
+
+        
+        upstream_win.after(2000, lambda: UpstreamDatabase().upstream(callback=upstream_win.destroy))
+
+        # up = UpstreamDatabase()
+        # up.upstream()
+
+        # upstream_win.destroy()
+
 
 

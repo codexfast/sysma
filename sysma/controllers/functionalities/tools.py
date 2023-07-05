@@ -1,4 +1,5 @@
 import re
+import uuid
 import typing
 
 def is_plate(str: str) -> bool:
@@ -81,3 +82,6 @@ def selecionar_contas(montante: float, contas_por_data:typing.List[typing.Dict])
         if montante == 0:  # se não há mais dinheiro restante
             break  # interrompe a seleção de contas
     return selecionadas
+
+def create_signature():
+    return uuid.uuid4().hex

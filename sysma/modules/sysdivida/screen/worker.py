@@ -1,6 +1,7 @@
 from view.base import BaseWindow
 from ..controllers.app import SysDivida
 from ..models.sysdivida import SysDividaHistory
+from models.projects import Projects
 
 from sqlalchemy.orm import Session
 
@@ -92,8 +93,9 @@ class Worker(BaseWindow):
     def create_history(self) -> int:
 
         with Session(config.DB_ENGINE) as session:
+            p = session.query(Projects).filter(Projects.id == self.project_id).one_or_none()
             
-            history = SysDividaHistory(project_id=self.project_id)
+            history = SysDividaHistory(project_id=self.project_id, parent_signature=p.signature)
 
             session.add(history)
             

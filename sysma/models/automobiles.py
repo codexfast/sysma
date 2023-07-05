@@ -3,6 +3,8 @@ import datetime
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy import Column, String, Integer, DateTime
+from controllers.functionalities.tools import create_signature
+
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
@@ -16,6 +18,8 @@ class Automobiles(Base):
 
     id = Column(Integer, primary_key=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
+    signature = Column(String, nullable=False, default=create_signature)
+    parent_signature = Column(String, nullable=False)
     
     placa = Column(String)
     placa_mercosul = Column(String)
