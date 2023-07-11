@@ -8,6 +8,8 @@ from modules.sysfazenda.models.sysfazenda import SysFazendalConfig
 from view.base import BaseWindow, BaseForm
 from config import DB_ENGINE
 
+from controllers.core.recaptcha import ReCaptcha
+
 import customtkinter
 
 
@@ -28,6 +30,7 @@ class Configs(BaseWindow):
 
         self.user_sispl_var = customtkinter.StringVar(value=None)
         self.password_sispl_var = customtkinter.StringVar(value=None)
+        self.balance_var = customtkinter.StringVar()
         self.key_sysfazenda_var = customtkinter.StringVar(value=None)
         self.headless_mode_var = customtkinter.StringVar(value="checked")
 
@@ -50,16 +53,27 @@ class Configs(BaseWindow):
         password_sispl = BaseForm.entry(self, 200, placeholder="Senha", show="*", textvariable=self.password_sispl_var)
 
         ###
-
+        
         # Sys Fazenda area
         lb_sysfazenda = customtkinter.CTkLabel(
 			self,
             text="Anti Captcha",
             font=customtkinter.CTkFont(family="Arial", size=15),
             text_color="#737373",
+            
 		)
 
-        key = BaseForm.entry(self, 410, placeholder="KEY", textvariable=self.key_sysfazenda_var, show="*")
+        lb_balance = customtkinter.CTkLabel(
+			self,
+            text="Saldo",
+            font=customtkinter.CTkFont(family="Arial", size=15),
+            text_color="#737373",
+            
+		)
+
+        key = BaseForm.entry(self, 271, placeholder="KEY", textvariable=self.key_sysfazenda_var, show="*")
+
+        balance = BaseForm.entry(self, 128, placeholder="Saldo: $0,00", textvariable=self.balance_var, state="disable")
 
         ###
 
@@ -87,7 +101,9 @@ class Configs(BaseWindow):
         # Sysfazenda place
 
         lb_sysfazenda.place(x=40, y=173)
+        lb_balance.place(x=322, y=173)
         key.place(x=40, y=198)
+        balance.place(x=322, y=198)
 
         ###
 
@@ -128,6 +144,10 @@ class Configs(BaseWindow):
 
             if config_sysfazenda:
                 self.key_sysfazenda_var.set(config_sysfazenda.anti_captcha_key)
+
+                balance = ReCaptcha.get_balance(config_sysfazenda.anti_captcha_key)
+
+                self.balance_var.set(f"$ {balance}")
 
             if general:
                 self.headless_mode_var.set("checked" if general.headless_mode else "notchecked")

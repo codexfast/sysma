@@ -25,8 +25,8 @@ import dataclasses
 import config
 
 
-PATIO_LOGIN = "https://www.sispl.sp.gov.br/maximo/webclient/login/login.jsp"
-PATIO_CONSULTA = "https://www.sispl.sp.gov.br/maximo/ui/?event=loadapp&value=ms_rptauc01&uisessionid=219&_tt=c8l2njvugsgco33oknltqkj2jf"
+PATIO_LOGIN = "https://www.sispl.sp.gov.br/"
+PATIO_CONSULTA = "https://www.sispl.sp.gov.br/maximo/ui/?event=loadapp&value=ms_rptauc01"
 
 
 
@@ -139,12 +139,18 @@ class Syspl(threading.Thread):
         self.driver.quit()
 
     def reopen_browser(self):
+        try:
+            self.logout()
+        except:
+            print("Falha no logout")
+
         self.driver.quit()
         self.driver = create_webdriver()
 
     def do_login(self):
-
+        time.sleep(2.5)
         self.driver.get(PATIO_LOGIN)
+        time.sleep(3)
 
         with Session(config.DB_ENGINE) as session: 
             login = session.query(SysplLogin).one_or_none()
@@ -162,8 +168,26 @@ class Syspl(threading.Thread):
         clickable = self.driver.find_element(By.XPATH, '//*[@id="loginbutton"]')
         clickable.click()
 
+        try: 
+            self.driver.find_element(By.XPATH, '//*[@id="main_tbl"]/tbody/tr[2]/td/div')
+            self.do_login()
+        
+        except NoSuchElementException:
+            pass
 
         try:
+            btn_remove_old_session = wait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "m692961ca-pb"))
+            )
+
+            btn_remove_old_session.click()
+        
+        except:
+            print("Não precisou remover antigas sessões")
+            
+
+        try:
+            self.driver.implicitly_wait(5)
             self.driver.find_element(By.ID, "titlebar-tb_appname")
 
         except NoSuchElementException:
@@ -172,15 +196,18 @@ class Syspl(threading.Thread):
 
         return self.driver.current_url
     
+    def logout(self):
+        btn = wait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "titlebar_hyperlink_8-lbsignout"))
+            )
+
+        btn.click()
+    
     def relogin(self):
 
         try:
 
-            btn = wait(self.driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "titlebar_hyperlink_8-lbsignout"))
-            )
-
-            btn.click()
+            self.logout()
 
         except NoSuchElementException:
             return False
@@ -416,7 +443,7 @@ class Syspl(threading.Thread):
                 ))
 
     def process(self):
-        reopen_in = 10
+        reopen_in = 3
 
         
         self.pb_step.set(0)
@@ -472,7 +499,12 @@ class Syspl(threading.Thread):
                     break
                 
                 except Exception as e:
+                    
                     self.lb_step.set("Erro critico!!!")
+                    print(e)
+                    self.reopen_browser()
+                    self.do_login()
+                    
                     continue
 
             # se carro for concluido atualiza barra de progresso

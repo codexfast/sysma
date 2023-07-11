@@ -114,8 +114,18 @@ class SysFazenda(threading.Thread):
         return sysFC.anti_captcha_key if not sysFC is None else sysFC
     
     def run(self):
-        self.process()
-        self.driver.quit()
+
+        balance = ReCaptcha.get_balance(self.anti_captcha_key)
+
+        if balance > 2:
+            self.process()
+            self.driver.quit()
+        else:
+            messagebox.showwarning("Balanço Recaptcha", "Saldo abaixo de $2", parent=self.view)
+            self.driver.quit()
+            self.view.destroy()
+
+        
 
     
     def record_auto(self, placa: str, renavam: str, auto: SFP = None):
@@ -146,7 +156,7 @@ class SysFazenda(threading.Thread):
 
 
 
-    def load_by_renavam_placa(self, placa: str, renavam: str) -> SFP:
+    def load_by_renavam_placa(self, placa: str, renavam: str) -> SFP:        
 
         self.driver.get(FAZENDA_CONSULTA)
 

@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
 from anticaptchaofficial.recaptchav2proxyless import recaptchaV2Proxyless
+from anticaptchaofficial.antinetworking import antiNetworking
 
 @dataclasses.dataclass
 class ReCaptcha:
@@ -45,8 +46,7 @@ class ReCaptcha:
             self.solver.set_website_url(self.driver.current_url)
             self.solver.set_website_key(self.recaptcha_key)
 
-            response = self.solver.solve_and_return_solution()
-            
+            response = self.solver.solve_and_return_solution()      
 
             if response:
                 self.driver.execute_script(
@@ -58,3 +58,16 @@ class ReCaptcha:
             print(err)
 
         return False
+
+    @staticmethod
+    def get_balance(key):
+        
+        ant = antiNetworking()
+        ant.set_key(key)
+
+        try:
+            return float(ant.get_balance())
+        except:
+            return 0.00
+    
+
