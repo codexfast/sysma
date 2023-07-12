@@ -148,9 +148,9 @@ class Syspl(threading.Thread):
         self.driver = create_webdriver()
 
     def do_login(self):
-        time.sleep(2.5)
+        time.sleep(1)
         self.driver.get(PATIO_LOGIN)
-        time.sleep(3)
+        time.sleep(1.5)
 
         with Session(config.DB_ENGINE) as session: 
             login = session.query(SysplLogin).one_or_none()
@@ -176,7 +176,7 @@ class Syspl(threading.Thread):
             pass
 
         try:
-            btn_remove_old_session = wait(self.driver, 10).until(
+            btn_remove_old_session = wait(self.driver, 2).until(
                 EC.element_to_be_clickable((By.ID, "m692961ca-pb"))
             )
 
@@ -187,7 +187,7 @@ class Syspl(threading.Thread):
             
 
         try:
-            self.driver.implicitly_wait(5)
+            self.driver.implicitly_wait(2)
             self.driver.find_element(By.ID, "titlebar-tb_appname")
 
         except NoSuchElementException:
@@ -197,7 +197,7 @@ class Syspl(threading.Thread):
         return self.driver.current_url
     
     def logout(self):
-        btn = wait(self.driver, 10).until(
+        btn = wait(self.driver, 5).until(
                 EC.element_to_be_clickable((By.ID, "titlebar_hyperlink_8-lbsignout"))
             )
 
@@ -443,7 +443,11 @@ class Syspl(threading.Thread):
                 ))
 
     def process(self):
+
         reopen_in = 3
+        
+        if "DEV" in config.DEV_CONFIG:
+            reopen_in = int(config.DEV_CONFIG["DEV"].get("reopen", 3))
 
         
         self.pb_step.set(0)
@@ -473,11 +477,12 @@ class Syspl(threading.Thread):
             # caso tenha guias abertas, fecha uma
             self.close_add_window()
 
-            for i in range(1,5):
+            for i in range(1,5 +1):
 
                 try:
 
-                    if c % 5 == 0:
+                    if i == 4:
+                        self.reopen_browser()
                         self.relogin()
                     
                     _auto = self.load_by_plate(placa)
@@ -541,7 +546,10 @@ class Syspl(threading.Thread):
                     return None
 
                 self.close_add_window()
-                self.relogin()
+                    
+                self.reopen_browser()
+                self.do_login()
+                
 
                 self.pb_step.set(0)
                 self.lb_perc.set(f"0%")
@@ -565,12 +573,14 @@ class Syspl(threading.Thread):
                     self.close_add_window()
 
                     # 5 tentativas para verificar para cada placa
-                    for i in range(1,5):
+                    for i in range(1,5 +1):
 
                         try:
 
-                            if index % 5 == 0:
-                                # refaça login a cada 3 placas
+                            if i % 4 == 0:
+                                # Re abre navegador e faz login na quarta tentantivas
+                                self.reopen_browser()
+
                                 self.relogin()
                             
                             new_data = self.load_by_plate(converted)
@@ -594,7 +604,6 @@ class Syspl(threading.Thread):
                             continue
                     
                     if index % reopen_in == 0:
-                        # se multiplo de 10 faça:
 
                         self.reopen_browser()
                         self.do_login()

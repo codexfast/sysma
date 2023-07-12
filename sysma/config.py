@@ -2,6 +2,7 @@ import os
 import customtkinter
 import dataclasses
 import sqlalchemy
+import configparser
 
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
@@ -32,6 +33,10 @@ Base.metadata.create_all(DB_ENGINE)
 # Paths
 IMAGE_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
 DOCUMENTS_FOLDER = os.path.join(os.path.expandvars('%USERPROFILE%'),'Documents', 'Sysma')
+
+# Dev
+DEV_CONFIG = configparser.ConfigParser()
+DEV_CONFIG.read("dev.ini")
 
 @dataclasses.dataclass
 class Images:
@@ -169,3 +174,6 @@ class Images:
 @dataclasses.dataclass
 class Fonts:
     pass
+
+
+# DEV_CONFIG.read()
