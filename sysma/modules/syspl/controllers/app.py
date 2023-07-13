@@ -490,6 +490,7 @@ class Syspl(threading.Thread):
                     if _auto:
                         if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe"):
                             self.record_auto(_auto, placa=auto.placa)
+                            break
                         else:
                             self.record_auto(placa=auto.placa)
 
