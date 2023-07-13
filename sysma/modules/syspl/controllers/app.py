@@ -481,7 +481,7 @@ class Syspl(threading.Thread):
 
             for i in range(3,5 +1):
 
-                # try:
+                try:
 
                     if i == 4:
                         self.reopen_browser()
@@ -505,14 +505,14 @@ class Syspl(threading.Thread):
                         self.record_auto(placa=auto.placa)
                     break
                 
-                # except Exception as e:
+                except Exception as e:
                     
-                #     self.lb_step.set("Erro critico!!!")
-                #     print(e)
-                #     self.reopen_browser()
-                #     self.do_login()
+                    self.lb_step.set("Erro critico!!!")
+                    print(e)
+                    self.reopen_browser()
+                    self.do_login()
                     
-                #     continue
+                    continue
 
             # se carro for concluido atualiza barra de progresso
             try:
