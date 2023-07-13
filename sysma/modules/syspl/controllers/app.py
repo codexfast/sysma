@@ -264,7 +264,7 @@ class Syspl(threading.Thread):
         ).click()
 
 
-        time.sleep(1.5)
+        time.sleep(2.5)
         # time.sleep(3.5)
 
         if wait(self.driver, 10).until(EC.frame_to_be_available_and_switch_to_it("mf36f9253-rtv")):
@@ -344,7 +344,7 @@ class Syspl(threading.Thread):
         # ]
 
 
-        time.sleep(1.5)
+        time.sleep(3.5)
         
         self.driver.switch_to.default_content();
 
@@ -390,6 +390,9 @@ class Syspl(threading.Thread):
     def record_auto(self, auto: Auto = {}, placa=None):
         
         with Session(config.DB_ENGINE) as session, session.begin():
+
+            h = session.query(SysplHistory).filter(SysplHistory.id == self.history_id).one_or_none()
+
             
             # se tiver algum valor diferente de 'None'
             if len(
@@ -400,7 +403,6 @@ class Syspl(threading.Thread):
                 )
             ):
                 
-                h =session.query(SysplHistory).filter(SysplHistory.id == self.history_id).one_or_none()
                 
                 self.update_renavam_chassi(session, placa, auto.get("dados_veiculo_renavam"), auto.get("dados_veiculo_chassi"))
 
@@ -444,7 +446,7 @@ class Syspl(threading.Thread):
 
     def process(self):
 
-        reopen_in = 3
+        reopen_in = 7
         
         if "DEV" in config.DEV_CONFIG:
             reopen_in = int(config.DEV_CONFIG["DEV"].get("reopen", 3))
@@ -477,9 +479,9 @@ class Syspl(threading.Thread):
             # caso tenha guias abertas, fecha uma
             self.close_add_window()
 
-            for i in range(1,5 +1):
+            for i in range(3,5 +1):
 
-                try:
+                # try:
 
                     if i == 4:
                         self.reopen_browser()
@@ -490,7 +492,6 @@ class Syspl(threading.Thread):
                     if _auto:
                         if not _auto.get("veículo_para_leilão_não_encontrado_[mainframe"):
                             self.record_auto(_auto, placa=auto.placa)
-                            break
                         else:
                             self.record_auto(placa=auto.placa)
 
@@ -504,14 +505,14 @@ class Syspl(threading.Thread):
                         self.record_auto(placa=auto.placa)
                     break
                 
-                except Exception as e:
+                # except Exception as e:
                     
-                    self.lb_step.set("Erro critico!!!")
-                    print(e)
-                    self.reopen_browser()
-                    self.do_login()
+                #     self.lb_step.set("Erro critico!!!")
+                #     print(e)
+                #     self.reopen_browser()
+                #     self.do_login()
                     
-                    continue
+                #     continue
 
             # se carro for concluido atualiza barra de progresso
             try:
