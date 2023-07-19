@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from tkinter import messagebox
 
 from models.sys import GeneralSettings
-from modules.syspl.models.syspl import SysplLogin
+from modules.syspl.models.syspl import SysplLogin, SysplConfig
 from modules.sysfazenda.models.sysfazenda import SysFazendalConfig
 from view.base import BaseWindow, BaseForm
 from config import DB_ENGINE
@@ -20,7 +20,7 @@ class Configs(BaseWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.center(500,450)
+        self.center(500,464)
         self.configure(fg_color=("#fff", "#333"))
         self.resizable(False, False)
         # self.iconbitmap()
@@ -33,6 +33,7 @@ class Configs(BaseWindow):
         self.balance_var = customtkinter.StringVar()
         self.key_sysfazenda_var = customtkinter.StringVar(value=None)
         self.headless_mode_var = customtkinter.StringVar(value="checked")
+        self.xtime_var = customtkinter.StringVar(value=5)
 
         self.load_config()
         self.add_widgets()
@@ -71,6 +72,16 @@ class Configs(BaseWindow):
             
 		)
 
+        lb_xtime = customtkinter.CTkLabel(
+			self,
+            text="Sispl X Time",
+            font=customtkinter.CTkFont(family="Arial", size=15),
+            text_color="#737373",
+            
+		)
+
+        xtime = BaseForm.entry(self, 271, placeholder="XTIME", textvariable=self.xtime_var)
+
         key = BaseForm.entry(self, 271, placeholder="KEY", textvariable=self.key_sysfazenda_var, show="*")
 
         balance = BaseForm.entry(self, 128, placeholder="Saldo: $0,00", textvariable=self.balance_var, state="disable")
@@ -97,13 +108,18 @@ class Configs(BaseWindow):
         password_sispl.place(x=250, y=113)
 
         ###
+        
+        # sispl x time
+        lb_xtime.place(x=40, y=173)
+        xtime.place(x=40, y=198)
+        ###
 
         # Sysfazenda place
 
-        lb_sysfazenda.place(x=40, y=173)
-        lb_balance.place(x=322, y=173)
-        key.place(x=40, y=198)
-        balance.place(x=322, y=198)
+        lb_sysfazenda.place(x=40, y=258)
+        lb_balance.place(x=322, y=258)
+        key.place(x=40, y=283)
+        balance.place(x=322, y=283)
 
         ###
 
@@ -116,7 +132,7 @@ class Configs(BaseWindow):
             variable=self.headless_mode_var
         )
 
-        headless_check.place(x=40, y=271)
+        headless_check.place(x=40, y=343)
 
 		# ... nothing here
         
@@ -137,6 +153,7 @@ class Configs(BaseWindow):
             login_syspl:SysplLogin = session.query(SysplLogin).one_or_none()
             config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
             general:GeneralSettings = session.query(GeneralSettings).one_or_none()
+            syspl_config:SysplConfig = session.query(SysplConfig).one_or_none()
 
             if login_syspl:
                 self.user_sispl_var.set(login_syspl.username)
@@ -149,6 +166,9 @@ class Configs(BaseWindow):
 
                 self.balance_var.set(f"$ {balance}")
 
+            if syspl_config:
+                self.xtime_var.set(syspl_config.xtime)
+
             if general:
                 self.headless_mode_var.set("checked" if general.headless_mode else "notchecked")
 
@@ -158,6 +178,14 @@ class Configs(BaseWindow):
 
 
     def set_config(self):
+        
+        try:
+            xtime = int(self.xtime_var.get())
+        except ValueError:
+            messagebox.showerror("Atenção!", "Xtime deve ser um valor inteiro/flutuante", parent=self)
+
+
+            return 0
 
         with Session(DB_ENGINE) as session, session.begin():
 
@@ -165,6 +193,8 @@ class Configs(BaseWindow):
             config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
             config_sysfazenda:SysFazendalConfig = session.query(SysFazendalConfig).one_or_none()
             general:GeneralSettings = session.query(GeneralSettings).one_or_none()
+            syspl_config:SysplConfig = session.query(SysplConfig).one_or_none()
+
 
 
             if config_sysfazenda:
@@ -181,6 +211,12 @@ class Configs(BaseWindow):
             else:
                 # caso não exista dados para login, cria no banco
                 session.add(SysplLogin(username=self.user_sispl_var.get(), password=self.password_sispl_var.get()))
+
+            if syspl_config:
+                syspl_config.xtime = xtime
+
+            else:
+                session.add(SysplConfig(xtime=xtime))
 
             if general:
                 general.headless_mode = True if self.headless_mode_var.get() == "checked" else False

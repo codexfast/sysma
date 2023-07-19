@@ -4,7 +4,7 @@ from controllers.data import Resources
 from controllers.core.xlsx import DataExport
 from controllers.functionalities.tools import *
 
-from ..models.syspl import SysplData, SysplHistory
+from ..models.syspl import SysplData, SysplHistory, SysplConfig
 from ..models.syspl import SysplLogin
 from models.automobiles import Automobiles
 
@@ -446,7 +446,15 @@ class Syspl(threading.Thread):
 
     def process(self):
 
+        with Session(config.DB_ENGINE) as session:
+            syspl_config:SysplConfig = session.query(SysplConfig).one_or_none()
+
+
         reopen_in = 7
+        xtime = syspl_config.xtime if syspl_config else 5
+
+        if not syspl_config:
+            messagebox.showwarning("Atenção", "Xtime não esta configurado", parent=self)
         
         if "DEV" in config.DEV_CONFIG:
             reopen_in = int(config.DEV_CONFIG["DEV"].get("reopen", 3))
@@ -466,6 +474,10 @@ class Syspl(threading.Thread):
 
         # for each of the cars do:
         for c, auto in enumerate(self.resources.get_autos(), start=1):
+
+            # controla maximo de pesquisas por minuto
+            if not c == 1:
+                time.sleep(60 / xtime)
 
             if self.lock_selenium:
                 return None
@@ -528,7 +540,7 @@ class Syspl(threading.Thread):
 
                 self.reopen_browser()
                 self.do_login()
-            
+
             # sempre no final
             self.view.update()
 
@@ -560,6 +572,10 @@ class Syspl(threading.Thread):
 
                 for index, auto in enumerate(failed, start=1):
                     percent = (100 * index) // len(failed)
+
+                    # controla maximo de pesquisas por minuto
+                    if not index == 1:
+                        time.sleep(60 / xtime)
                     
 
                     if self.lock_selenium:

@@ -87,3 +87,9 @@ class SysplLogin(Base):
 
     time_created = Column(DateTime(timezone=True), default=datetime.datetime.now)
     time_updated = Column(DateTime(timezone=True), onupdate=datetime.datetime.now)
+
+class SysplConfig(Base):
+    __tablename__ = "sysplconfig"
+
+    id = Column(Integer, primary_key=True)
+    xtime = Column(Integer, default=5)
